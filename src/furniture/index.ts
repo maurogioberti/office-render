@@ -1,0 +1,109 @@
+import { Color3, Mesh, MeshBuilder, Scene, StandardMaterial, Vector3 } from '@babylonjs/core';
+import type { FurnitureConfig } from '../config/types';
+import { solid, type Materials } from '../materials';
+import { box } from '../room/geometry';
+
+export type FurnitureObject = { config: FurnitureConfig; root: Mesh; meshes: Mesh[]; materials: StandardMaterial[] };
+
+export function createFurniture(scene: Scene, configs: FurnitureConfig[], mats: Materials) {
+  const objects = new Map<string, FurnitureObject>();
+  for (const config of configs) {
+    const root = new Mesh(config.id, scene); root.isPickable = false;
+    root.position.set(config.position.x, config.position.y, config.position.z);
+    root.rotation.y = config.rotation * Math.PI / 180;
+    const body = solid(scene, `${config.id} finish`, config.color, .09);
+    const object = { config, root, meshes: [] as Mesh[], materials: [body] };
+    objects.set(config.id, object);
+    const { width: w, height: h, depth: d } = config.dimensions;
+    const b = (name: string, width: number, height: number, depth: number, x: number, y: number, z: number, material = body) => {
+      const mesh = box(scene, `${config.id} · ${name}`, width, height, depth, x, y, z, material, root);
+      object.meshes.push(mesh); return mesh;
+    };
+    const cylinder = (name: string, diameter: number, height: number, x: number, y: number, z: number, material = mats.dark) => {
+      const mesh = MeshBuilder.CreateCylinder(`${config.id} · ${name}`, { diameter, height, tessellation: 20 }, scene);
+      mesh.position.set(x, y, z); mesh.parent = root; mesh.material = material;
+      mesh.receiveShadows = true; object.meshes.push(mesh); return mesh;
+    };
+    switch (config.kind) {
+      case 'desk': {
+        b('oak worktop', w, h * .045, d, 0, h * .9775, 0);
+        for (const x of [-1, 1]) for (const z of [-1, 1]) b('steel leg', w * .025, h * .955, d * .058, x * w * .455, h * .4775, z * d * .41, mats.dark);
+        b('rear frame', w * .93, h * .065, d * .045, 0, h * .83, d * .41, mats.dark);
+        break;
+      }
+      case 'chair': {
+        cylinder('gas lift', w * .085, h * .32, 0, h * .235, 0, mats.metal);
+        for (let i = 0; i < 5; i++) {
+          const a = i * Math.PI * 2 / 5;
+          const spoke = b('base spoke', w * .043, h * .03, d * .44, Math.sin(a) * w * .2, h * .065, Math.cos(a) * d * .2, mats.dark);
+          spoke.rotation.y = a;
+          cylinder('castor', w * .09, h * .05, Math.sin(a) * w * .43, h * .025, Math.cos(a) * d * .43);
+        }
+        b('seat cushion', w * .78, h * .08, d * .77, 0, h * .41, 0);
+        b('back support', w * .17, h * .55, d * .07, 0, h * .62, -d * .4, mats.dark);
+        b('ergonomic backrest', w * .72, h * .46, d * .095, 0, h * .705, -d * .38);
+        b('headrest', w * .42, h * .09, d * .12, 0, h * .955, -d * .38);
+        for (const side of [-1, 1]) {
+          b('arm support', w * .04, h * .16, d * .05, side * w * .46, h * .47, 0, mats.dark);
+          b('arm pad', w * .08, h * .035, d * .4, side * w * .46, h * .5675, 0, mats.dark);
+        }
+        break;
+      }
+      case 'pc': {
+        b('tower case', w, h, d, 0, h / 2, 0);
+        b('front panel', w * .9, h * .89, .003, 0, h * .5, -d / 2 + .002, mats.dark);
+        const led = solid(scene, `${config.id} status LED`, '#adcca4'); led.emissiveColor = Color3.FromHexString('#a7cda0'); object.materials.push(led);
+        b('power indicator', w * .1, h * .015, .004, w * .28, h * .88, -d / 2 + .002, led);
+        for (let i = 0; i < 8; i++) b('vent', w * .58, h * .009, .004, 0, h * .2 + i * h * .04, -d / 2 + .002, mats.dark);
+        break;
+      }
+      case 'monitor': {
+        b('stand foot', w * .34, h * .025, d, 0, h * .0125, 0);
+        b('stand', w * .045, h * .31, d * .09, 0, h * .16, d * .08);
+        b('display shell', w, h * .76, d * .14, 0, h * .62, d * .14);
+        const display = solid(scene, `${config.id} screen`, '#617f80', .2);
+        display.emissiveColor = Color3.FromHexString('#789a98').scale(.23); object.materials.push(display);
+        b('screen', w * .953, h * .69, .002, 0, h * .627, d * .069, display);
+        break;
+      }
+      case 'storage': {
+        b('cabinet body', w, h * .96, d, 0, h * .52, 0);
+        for (const side of [-1, 1]) b('short foot', w * .07, h * .04, d * .76, side * w * .4, h * .02, 0, mats.dark);
+        for (let i = 0; i < 3; i++) {
+          b('drawer front', w * .95, h * .298, .02, 0, h * .205 + i * h * .315, -d / 2 + .01);
+          b('drawer reveal', w * .96, .003, .004, 0, h * .359 + i * h * .315, -d / 2 + .002, mats.dark);
+          b('drawer pull', w * .2, h * .013, .026, 0, h * .28 + i * h * .315, -d / 2 + .013, mats.dark);
+        }
+        break;
+      }
+      case 'divider': {
+        // Three folding panels; alternating plan angles stay within the configured envelope.
+        const panels = 3, gap = .008 * w, pw = (w - 2 * gap) / panels;
+        const frame = solid(scene, `${config.id} ash frame`, '#ab9779'); object.materials.push(frame);
+        for (let i = 0; i < panels; i++) {
+          const x = (i - 1) * (pw + gap), z = (i % 2 ? 1 : -1) * d * .16;
+          b('fabric panel', pw * .89, h * .92, d * .16, x, h * .515, z);
+          for (const side of [-1, 1]) b('timber stile', pw * .055, h, d * .24, x + side * pw * .4725, h / 2, z, frame);
+          for (const y of [h * .045, h * .981]) b('timber rail', pw, h * .038, d * .24, x, y, z, frame);
+          b('foot', pw * .3, h * .02, d, x, h * .01, 0, frame);
+          for (let line = 1; line < 17; line++) b('subtle textile rib', .001, h * .9, .001, x - pw * .44 + line * pw * .052, h * .515, z - d * .081, frame);
+        }
+        break;
+      }
+    }
+    for (const mesh of object.meshes) { mesh.isPickable = true; mesh.metadata = { furnitureId: config.id }; }
+    root.setEnabled(config.visible);
+  }
+  for (const object of objects.values()) {
+    if (object.config.parentId) object.root.parent = objects.get(object.config.parentId)!.root;
+  }
+  // Compute parents first so picking, dimensions, and gizmos have valid initial world matrices.
+  for (const object of objects.values()) { object.root.computeWorldMatrix(true); for (const mesh of object.meshes) mesh.computeWorldMatrix(true); }
+  return objects;
+}
+
+export function disposeFurniture(objects: Map<string, FurnitureObject>) {
+  for (const object of objects.values()) { object.root.dispose(false, false); object.materials.forEach(m => m.dispose()); }
+}
+
+export function worldPosition(object: FurnitureObject) { return object.root.getAbsolutePosition().clone(); }

@@ -1,0 +1,7 @@
+import { createIcons, Box, Armchair, Table2, Monitor, PcCase, Archive, PanelsTopLeft, Move, RotateCw, Undo2, Redo2, Grid2X2, Ruler, Layers2, Eye, EyeOff, ChevronDown, ChevronRight, Download, Upload, Settings2, Footprints, MousePointer2, Check, Plus, Minus, Maximize, DoorOpen, AppWindow, SlidersHorizontal, X, Keyboard, Info, RotateCcw, ArrowUpRight, Focus, Sun, PanelLeftClose, LayoutDashboard, CornerUpRight, CircleHelp, Save } from 'lucide';
+
+const icons = { Box, Armchair, Table2, Monitor, PcCase, Archive, PanelsTopLeft, Move, RotateCw, Undo2, Redo2, Grid2X2, Ruler, Layers2, Eye, EyeOff, ChevronDown, ChevronRight, Download, Upload, Settings2, Footprints, MousePointer2, Check, Plus, Minus, Maximize, DoorOpen, AppWindow, SlidersHorizontal, X, Keyboard, Info, RotateCcw, ArrowUpRight, Focus, Sun, PanelLeftClose, LayoutDashboard, CornerUpRight, CircleHelp, Save };
+export const icon = (name: string, className = '') => `<i data-lucide="${name}" class="${className}" aria-hidden="true"></i>`;
+export const renderIcons = () => createIcons({ icons: { ...icons, Grid2x2: Grid2X2 }, attrs: { 'stroke-width': 1.65 } });
+export const furnitureIcon = (kind: string) => ({ desk:'table-2',chair:'armchair',pc:'pc-case',monitor:'monitor',storage:'archive',divider:'panels-top-left' })[kind] ?? 'box';
+export const escapeHTML = (text: string) => text.replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]!);
