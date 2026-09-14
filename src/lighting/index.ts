@@ -1,5 +1,15 @@
 import { Color3, DirectionalLight, HemisphericLight, Scene, ShadowGenerator, Vector3 } from '@babylonjs/core';
 import '@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent';
+import type { RoomConfig } from '../config/types';
+
+export function aimDaylight(sun: DirectionalLight, room: RoomConfig) {
+  const window = room.openings.find(o => o.kind === 'window');
+  if (!window) return;
+  const side = { north: new Vector3(0,0,1), south: new Vector3(0,0,-1), east: new Vector3(1,0,0), west: new Vector3(-1,0,0) }[window.wall];
+  const alongX = window.wall === 'north' || window.wall === 'south';
+  sun.position.copyFrom(side.scale(5).add(new Vector3(alongX ? window.offset : 0,7,alongX ? 0 : window.offset)));
+  sun.direction.copyFrom(new Vector3(0,.5,0).subtract(sun.position).normalize());
+}
 
 export function createLighting(scene: Scene) {
   const ambient = new HemisphericLight('Soft ambient daylight', new Vector3(0, 1, 0), scene);

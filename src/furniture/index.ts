@@ -2,6 +2,7 @@ import { Color3, Mesh, MeshBuilder, Scene, StandardMaterial, Vector3 } from '@ba
 import type { FurnitureConfig } from '../config/types';
 import { solid, type Materials } from '../materials';
 import { box } from '../room/geometry';
+import { furnitureFootprints, monitorPanel } from './footprint';
 
 export type FurnitureObject = { config: FurnitureConfig; root: Mesh; meshes: Mesh[]; materials: StandardMaterial[] };
 
@@ -26,6 +27,15 @@ export function createFurniture(scene: Scene, configs: FurnitureConfig[], mats: 
     };
     switch (config.kind) {
       case 'desk': {
+        if (config.cornerDesk) {
+          for (const [index, part] of furnitureFootprints(config).entries()) {
+            b(`L worktop ${index}`, part.width, .035, part.depth, part.x, h - .0175, part.z);
+            for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+              b('corner desk leg', .045, h - .035, .045, part.x + sx * (part.width / 2 - .065), (h - .035) / 2, part.z + sz * (part.depth / 2 - .065), mats.dark);
+            }
+          }
+          break;
+        }
         b('oak worktop', w, h * .045, d, 0, h * .9775, 0);
         for (const x of [-1, 1]) for (const z of [-1, 1]) b('steel leg', w * .025, h * .955, d * .058, x * w * .455, h * .4775, z * d * .41, mats.dark);
         b('rear frame', w * .93, h * .065, d * .045, 0, h * .83, d * .41, mats.dark);
@@ -58,6 +68,25 @@ export function createFurniture(scene: Scene, configs: FurnitureConfig[], mats: 
         break;
       }
       case 'monitor': {
+        if (config.monitor) {
+          const panel = monitorPanel(config), bezel = config.monitor.bezel;
+          const panelW = panel.width + 2 * bezel, panelH = panel.height + 2 * bezel;
+          const centerY = h - panelH / 2, screenZ = -d * .18;
+          b('display shell', panelW, panelH, .035, 0, centerY, screenZ);
+          const display = solid(scene, `${config.id} screen`, '#54716f', .15);
+          display.emissiveColor = Color3.FromHexString('#789a98').scale(.18); object.materials.push(display);
+          b('27 inch active panel', panel.width, panel.height, .002, 0, centerY, screenZ - .018, display);
+          if (config.monitor.mount === 'arm') {
+            b('arm clamp', .065, .025, .07, 0, .0125, d * .32, mats.dark);
+            cylinder('arm post', .027, centerY * .78, 0, centerY * .39 + .025, d * .32, mats.dark);
+            b('articulated arm', .03, .035, d * .5, 0, centerY * .78, d * .07, mats.dark);
+            b('VESA support', .07, centerY * .22 + .025, .025, 0, centerY * .89, screenZ + .035, mats.dark);
+          } else {
+            b('stand foot', w * .45, .025, d, 0, .0125, 0);
+            b('stand post', .035, centerY, .035, 0, centerY / 2, screenZ + .035);
+          }
+          break;
+        }
         b('stand foot', w * .34, h * .025, d, 0, h * .0125, 0);
         b('stand', w * .045, h * .31, d * .09, 0, h * .16, d * .08);
         b('display shell', w, h * .76, d * .14, 0, h * .62, d * .14);

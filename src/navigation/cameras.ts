@@ -14,7 +14,7 @@ export class Navigation {
   onMessage: (message: string) => void = () => {};
 
   constructor(private scene: Scene, private canvas: HTMLCanvasElement, private config: PlannerConfig) {
-    this.edit = new ArcRotateCamera('Edit camera', -Math.PI / 3, Math.PI / 3.2, 6.5, new Vector3(0, .62, 0), scene);
+    this.edit = new ArcRotateCamera('Edit camera', Math.PI / 3, Math.PI / 3.2, 6.5, new Vector3(0, .62, 0), scene);
     this.edit.lowerRadiusLimit = 2; this.edit.upperRadiusLimit = 13;
     this.edit.lowerBetaLimit = .025; this.edit.upperBetaLimit = Math.PI / 2 - .06;
     this.edit.wheelDeltaPercentage = .012; this.edit.panningSensibility = 550;
@@ -64,7 +64,7 @@ export class Navigation {
     try { await this.canvas.requestPointerLock(); } catch { this.onMessage('Click the room again to capture the mouse.'); }
   }
   view(top: boolean) {
-    this.edit.alpha = -Math.PI / 3; this.edit.beta = top ? .025 : Math.PI / 3.2;
+    this.edit.alpha = Math.PI / 3; this.edit.beta = top ? .025 : Math.PI / 3.2;
     this.edit.radius = top ? 6.2 : 6.5; this.edit.target.set(0, top ? 0 : .62, 0);
   }
   focus(position: Vector3) { this.edit.setTarget(position.add(new Vector3(0,.5,0))); this.edit.radius = 4; }

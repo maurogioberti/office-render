@@ -35,7 +35,7 @@ export function createRoom(scene: Scene, room: RoomConfig, mats: Materials) {
       const x = (xs[i] + xs[i + 1]) / 2, y = (ys[j] + ys[j + 1]) / 2;
       if (openings.some(o => Math.abs(x - o.offset) < o.width / 2 && y > o.sill && y < o.sill + o.height)) continue;
       const p = wallPoint(room, wall, x, y);
-      meshes.push(box(scene, `${wall} plaster ${i}:${j}`, long ? xs[i + 1] - xs[i] : room.wallThickness, ys[j + 1] - ys[j], long ? room.wallThickness : xs[i + 1] - xs[i], p.x, p.y, p.z, mats.wall, group));
+      meshes.push(box(scene, `${wall} plaster ${i}:${j}`, long ? xs[i + 1] - xs[i] : room.wallThickness, ys[j + 1] - ys[j], long ? room.wallThickness : xs[i + 1] - xs[i], p.x, p.y, p.z, mats.walls[wall], group));
     }
     for (let i = 0; i < xs.length - 1; i++) {
       const x = (xs[i] + xs[i + 1]) / 2;

@@ -5,10 +5,12 @@ import type { FurnitureConfig, Mode, PlannerConfig, TransformTool } from './conf
 import { createRoom, type RoomGeometry } from './room/geometry';
 import { createArchitecture } from './architecture/features';
 import { createFurniture, disposeFurniture, type FurnitureObject } from './furniture';
-import { createMaterials, type Materials } from './materials';
-import { createLighting } from './lighting';
+import { createMaterials, disposeMaterials, type Materials } from './materials';
+import { createLighting, aimDaylight } from './lighting';
+import { createBaseboardLighting } from './lighting/baseboards';
+import { placeScreenBehindChair } from './furniture/placement';
 import { Navigation } from './navigation/cameras';
-import { itemFitsRoom, worldTransform } from './navigation/collision';
+import { itemFitsRoom } from './navigation/collision';
 import { createMeasurements } from './room/measurements';
 import { UI } from './ui/panel';
 
@@ -23,9 +25,10 @@ export class Planner {
   private furniture = new Map<string, FurnitureObject>();
   private measurement!: ReturnType<typeof createMeasurements>;
   private lights: ReturnType<typeof createLighting>;
+  private baseboards!: ReturnType<typeof createBaseboardLighting>;
   private navigation: Navigation;
   private gizmos: GizmoManager;
-  private selectedId: string | null = 'divider';
+  private selectedId: string | null = 'desk';
   private tool: TransformTool = 'move';
   private selection: Mesh | null = null;
   private grid = false;
@@ -91,6 +94,8 @@ export class Planner {
     this.materials = createMaterials(this.scene, this.config.room);
     this.room = createRoom(this.scene, this.config.room, this.materials);
     this.architecture = createArchitecture(this.scene, this.config.room, this.materials, this.room);
+    this.baseboards = createBaseboardLighting(this.scene, this.config.room, this.room);
+    aimDaylight(this.lights.sun, this.config.room);
     this.measurement = createMeasurements(this.scene, this.config.room);
   }
   private buildFurniture() {
@@ -105,8 +110,8 @@ export class Planner {
     this.navigation.setConfig(this.config); this.updateSelection();
   }
   private destroyRoom() {
-    this.measurement.dispose(); this.architecture.forEach(m=>m.dispose()); Object.values(this.room.groups).forEach(g=>g.dispose());
-    this.room.floor.dispose(); this.room.tile.dispose(); this.room.ceiling.dispose(); Object.values(this.materials).forEach(m=>m.dispose(false, true));
+    this.baseboards.dispose(); this.measurement.dispose(); this.architecture.forEach(m=>m.dispose()); Object.values(this.room.groups).forEach(g=>g.dispose());
+    this.room.floor.dispose(); this.room.tile.dispose(); this.room.ceiling.dispose(); disposeMaterials(this.materials);
   }
   private render() {
     this.ui.render({ config:this.config,selectedId:this.selectedId,mode:this.navigation.mode,tool:this.tool,grid:this.grid,dimensions:this.dimensions,cutaway:this.cutaway,snap:this.snap,top:this.top,canUndo:this.history.canUndo,canRedo:this.history.canRedo });
@@ -127,7 +132,9 @@ export class Planner {
     const o = this.selectedId ? this.furniture.get(this.selectedId) : undefined;
     if (!o || !o.root.isEnabled() || this.navigation.mode !== 'edit') return;
     const { width:w,depth:d } = o.config.dimensions, x = w/2+.012, z = d/2+.012;
-    const points = [new Vector3(-x,.008,-z),new Vector3(x,.008,-z),new Vector3(x,.008,z),new Vector3(-x,.008,z),new Vector3(-x,.008,-z)];
+    const t = o.config.cornerDesk?.worktopDepth;
+    const points = t ? [new Vector3(-x,.008,-z),new Vector3(x,.008,-z),new Vector3(x,.008,-z+t),new Vector3(-x+t,.008,-z+t),new Vector3(-x+t,.008,z),new Vector3(-x,.008,z),new Vector3(-x,.008,-z)]
+      : [new Vector3(-x,.008,-z),new Vector3(x,.008,-z),new Vector3(x,.008,z),new Vector3(-x,.008,z),new Vector3(-x,.008,-z)];
     const lines = MeshBuilder.CreateLines('Selected object footprint', { points }, this.scene);
     lines.color = Color3.FromHexString('#6c8555'); lines.isPickable = false; lines.parent = o.root; this.selection = lines;
     this.gizmos.attachToMesh(o.root);
@@ -140,6 +147,7 @@ export class Planner {
     this.room.groups.east.setEnabled(!cut || (!overhead && cam.x <= 0));
     this.room.groups.west.setEnabled(!cut || (!overhead && cam.x >= 0));
     this.room.ceiling.setEnabled(!editing);
+    this.baseboards.sync();
     this.measurement.dimensions.forEach(m=>m.setEnabled(editing && this.dimensions)); this.measurement.grid.forEach(m=>m.setEnabled(editing && this.grid));
   }
   private apply(next: PlannerConfig, rebuildRoom = false, record = true) {
@@ -167,6 +175,7 @@ export class Planner {
         const oldHeight = item.dimensions.height; item.dimensions[field as keyof FurnitureConfig['dimensions']] = value;
         if (item.kind === 'desk' && field === 'height') config.furniture.filter(f=>f.parentId === item.id && f.kind === 'monitor').forEach(f=>{ f.position.y += value-oldHeight; });
       } else if(group === 'position' && ['x','y','z'].includes(field)) item.position[field as keyof FurnitureConfig['position']] = value;
+      else if(group === 'cornerDesk' && field === 'worktopDepth' && item.cornerDesk) item.cornerDesk.worktopDepth = value;
       else if(group === 'transform' && field === 'rotation') item.rotation = ((value % 360) + 360) % 360;
     });
   }
@@ -202,9 +211,7 @@ export class Planner {
       case 'deselect': this.select(null); return;
       case 'rotate90': this.change(config=>{ const item = config.furniture.find(f=>f.id === this.selectedId); if(item) item.rotation = (item.rotation+90)%360; }); return;
       case 'behind-desk': this.change(config=>{
-        const desk = config.furniture.find(f=>f.kind === 'desk'), screen = config.furniture.find(f=>f.id === this.selectedId); if(!desk || !screen) return;
-        const t = worldTransform(desk,config.furniture), r = t.rotation * Math.PI/180, distance = desk.dimensions.depth/2 + .9 + screen.dimensions.depth/2;
-        screen.position = {x:t.position.x-Math.sin(r)*distance,y:0,z:t.position.z-Math.cos(r)*distance}; screen.rotation = t.rotation;
+        const screen = config.furniture.find(f=>f.id === this.selectedId); if(screen) placeScreenBehindChair(config,screen);
       }); return;
       case 'reset-object': this.change(config=>{
         const index = config.furniture.findIndex(f=>f.id === this.selectedId), original = freshConfig().furniture.find(f=>f.id === this.selectedId);

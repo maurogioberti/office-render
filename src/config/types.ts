@@ -12,6 +12,9 @@ export type FurnitureConfig = {
   color: string;
   visible: boolean;
   parentId?: string;
+  /** L footprint occupies local -X and -Z sides. Outer runs use width/depth. */
+  cornerDesk?: { worktopDepth: number };
+  monitor?: { brand: string; diagonalInches: number; orientation: 'landscape' | 'portrait'; mount: 'arm' | 'stand'; bezel: number };
 };
 export type OpeningConfig = {
   id: string;
@@ -29,10 +32,12 @@ export type RoomConfig = {
   height: number;
   heightConfirmed: boolean;
   wallThickness: number;
+  wallFinishes: Record<Wall, { color: string; texture: 'plaster' | 'plain'; sheen: number }>;
+  baseboardLED: { enabled: boolean; color: string; intensity: number; glow: number };
   openings: OpeningConfig[];
   beams: { id: string; enabled: boolean; wall: Wall; offset: number; length: number; projection: number; drop: number }[];
   cornerFeatures: { id: string; enabled: boolean; corner: 'north-west' | 'north-east' | 'south-west' | 'south-east'; width: number; depth: number; height: number }[];
 };
-export type PlannerConfig = { version: 1; room: RoomConfig; furniture: FurnitureConfig[] };
+export type PlannerConfig = { version: 2; room: RoomConfig; furniture: FurnitureConfig[] };
 export type Mode = 'edit' | 'walk';
 export type TransformTool = 'move' | 'rotate';

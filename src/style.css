@@ -52,6 +52,8 @@ h3 { font-size: 12px; font-weight: 500; margin: 0; }
 .architecture-row svg { width: 15px; height: 15px; color: #9ba18f; }
 .row-tag { margin-left: auto; font-size: 7px; letter-spacing: 1px; color: #a0a795; }
 .provisional-dot { margin-left: auto; background: #c5b78a; width: 4px; height: 4px; border-radius: 50%; }
+.led-dot { margin-left: auto; width: 7px; height: 7px; border-radius: 50%; }
+.settings-field input[type=color] { width: 100%; height: 35px; border: 1px solid var(--border); border-radius: 5px; padding: 3px; cursor: pointer; }
 .features-note { display: flex; align-items: center; gap: 6px; font-size: 9px; color: #9a9f90; padding: 9px 8px 0; }
 .features-note svg { width: 11px; height: 11px; }
 .object-list { display: flex; flex-direction: column; gap: 4px; }

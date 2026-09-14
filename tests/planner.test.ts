@@ -2,21 +2,26 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ArcRotateCamera, Matrix, NullEngine, Ray, Scene, Vector3 } from '@babylonjs/core';
 import { freshConfig } from '../src/config/office';
-import { History, validateConfig } from '../src/config/storage';
+import { History, validateConfig, upgradeSavedLayout, removeRetiredFurniture } from '../src/config/storage';
 import { canStand, circleIntersects, findWalkStart, itemFitsRoom, moveWithCollisions, obstacles, worldTransform } from '../src/navigation/collision';
 import { createMaterials } from '../src/materials';
 import { createRoom } from '../src/room/geometry';
 import { createArchitecture } from '../src/architecture/features';
 import { createFurniture } from '../src/furniture';
+import { monitorPanel } from '../src/furniture/footprint';
+import { baseboardSpans } from '../src/lighting/baseboards';
 
 test('default layout has the stated footprint and door/window orientation; unlocated features stay disabled', () => {
   const config = validateConfig(freshConfig());
   assert.equal(config.room.length, 3.8); assert.equal(config.room.width, 2.6);
   assert.equal(config.room.openings.find(o=>o.kind === 'door')!.wall, 'east');
-  assert.equal(config.room.openings.find(o=>o.kind === 'window')!.wall, 'north');
+  assert.equal(config.room.openings.find(o=>o.kind === 'window')!.wall, 'south');
+  assert.ok(config.room.openings.find(o=>o.kind === 'window')!.offset > 0);
   assert.equal(config.room.heightConfirmed, false);
   assert.ok(config.room.beams.every(b=>!b.enabled)); assert.ok(config.room.cornerFeatures.every(f=>!f.enabled));
   assert.ok(config.furniture.every(f=>itemFitsRoom(f, config)));
+  assert.equal(config.furniture.length,7);
+  assert.ok(!config.furniture.some(f=>f.kind==='divider' || f.kind==='storage'));
 });
 
 test('invalid imports reject NaN, negative sizes, duplicate IDs, parent cycles and wall openings outside the room', () => {
@@ -41,16 +46,104 @@ test('walking starts at an unobstructed eye-height point and detects a fully blo
   const config=freshConfig(), point=findWalkStart(config)!;
   assert.ok(point); assert.equal(point.y,1.7); assert.ok(canStand(point.x,point.z,config.room,obstacles(config)));
   config.furniture=[{...config.furniture[0],position:{x:0,y:0,z:0},dimensions:{width:3.8,height:2,depth:2.6}}];
+  delete config.furniture[0].cornerDesk;
   assert.equal(findWalkStart(config),null);
 });
 
-test('swept movement cannot tunnel through the thin privacy screen, including a large step', () => {
-  const config=freshConfig(), divider=obstacles(config).find(o=>o.id==='divider')!;
-  const end=moveWithCollisions({x:-.5,y:1.7,z:-.2},0,-2,config.room,[divider]);
-  assert.ok(end.z>=divider.z+divider.depth/2+.2-.001);
+test('swept movement cannot tunnel through a thin obstacle, including a large step', () => {
+  const config=freshConfig(), divider={id:'test-obstacle',x:.18,z:-.1,bottom:0,top:1.65,width:1.65,depth:.14,rotation:90};
+  const end=moveWithCollisions({x:1,y:1.7,z:divider.z},-2,0,config.room,[divider]);
+  assert.ok(end.x>=divider.x+divider.depth/2+.2-.001);
   assert.equal(end.y,1.7);
   const wall=moveWithCollisions({x:0,y:1.7,z:0},10,0,config.room,[]);
   assert.ok(wall.x<=1.7); assert.ok(wall.x>1.65);
+});
+
+test('L desk leaves the chair bay open and its two runs rotate with matching collisions', () => {
+  const config = freshConfig(), desk = config.furniture.find(f=>f.id==='desk')!;
+  const parts = obstacles(config).filter(o=>o.id==='desk');
+  assert.equal(parts.length,2); assert.equal(desk.dimensions.depth,1.8); assert.equal(desk.dimensions.width,1.5);
+  assert.ok(canStand(-.6,.1,config.room,parts),'Inner L corner is open');
+  assert.ok(!canStand(-1.5,0,config.room,parts),'West worktop collides');
+  assert.ok(!canStand(-.6,-.9,config.room,parts),'South return collides');
+  desk.rotation=90; desk.position={x:0,y:0,z:0};
+  const rotated = obstacles(config).filter(o=>o.id==='desk');
+  assert.ok(rotated.every(o=>o.rotation===90));
+  assert.ok(canStand(.4,-.3,config.room,rotated));
+});
+
+test('the room has a traversable route from the door into the workstation', () => {
+  const config=freshConfig(), items=obstacles(config), step=.05;
+  // Flood fill of a 40 cm body on the interior grid, including the actual chair.
+  const start=findWalkStart(config)!, queue=[[Math.round(start.x/step),Math.round(start.z/step)]], seen=new Set<string>();
+  let reached=false;
+  for(let i=0;i<queue.length;i++) {
+    const [x,z]=queue[i], key=`${x},${z}`;
+    if(seen.has(key))continue; seen.add(key);
+    if(!canStand(x*step,z*step,config.room,items))continue;
+    if(Math.hypot(x*step+.57,z*step-.68)<.09){reached=true;break;}
+    queue.push([x+1,z],[x-1,z],[x,z+1],[x,z-1]);
+  }
+  assert.ok(reached,'Door-to-workstation path must stay open');
+});
+
+test('removing retired objects preserves room settings and unrelated furniture edits', () => {
+  const config=freshConfig();
+  config.room.baseboardLED.color='#44aaff'; config.furniture.find(f=>f.id==='chair')!.position.x=-.45;
+  config.furniture.push(
+    {id:'divider',name:'Privacy screen',kind:'divider',dimensions:{width:1.65,height:1.65,depth:.14},position:{x:.18,y:0,z:-.1},rotation:90,color:'#c4c6ad',visible:true},
+    {id:'storage',name:'Drawer',kind:'storage',dimensions:{width:.55,height:.65,depth:.42},position:{x:1.32,y:0,z:.97},rotation:0,color:'#d2c3aa',visible:true},
+  );
+  const snapshot=JSON.stringify(config), migrated=removeRetiredFurniture(config);
+  assert.equal(JSON.stringify(config),snapshot); assert.equal(migrated.furniture.length,7);
+  assert.equal(migrated.room.baseboardLED.color,'#44aaff');
+  assert.equal(migrated.furniture.find(f=>f.id==='chair')!.position.x,-.45);
+  assert.ok(!obstacles(migrated).some(o=>['divider','storage'].includes(o.id)));
+  assert.deepEqual(removeRetiredFurniture(migrated),migrated);
+  assert.ok(!upgradeSavedLayout(config).furniture.some(f=>['divider','storage'].includes(f.id)));
+});
+
+test('four Samsung 27 inch panels have three landscape orientations, one portrait, and arms', () => {
+  const monitors=freshConfig().furniture.filter(f=>f.kind==='monitor');
+  assert.equal(monitors.length,4);
+  assert.equal(monitors.filter(m=>m.monitor!.orientation==='landscape').length,3);
+  assert.equal(monitors.filter(m=>m.monitor!.orientation==='portrait').length,1);
+  for(const m of monitors) {
+    assert.equal(m.monitor!.brand,'Samsung'); assert.equal(m.monitor!.mount,'arm');
+    const p=monitorPanel(m); assert.ok(Math.abs(Math.hypot(p.width,p.height)-27*.0254)<1e-8);
+    assert.equal(m.parentId,'desk');
+  }
+  const invalid=freshConfig(); invalid.furniture.find(f=>f.kind==='monitor')!.dimensions.width=.1;
+  assert.throws(()=>validateConfig(invalid),/monitor envelope/);
+});
+
+test('LED strips stop at the doorway and wall finishes are independent and neutral by default', () => {
+  const config=freshConfig(), room=config.room, door=room.openings.find(o=>o.kind==='door')!;
+  assert.equal(room.baseboardLED.color,'#ff3030'); assert.ok(room.baseboardLED.enabled);
+  const spans=baseboardSpans(room,door.wall);
+  assert.equal(spans.length,2);
+  assert.ok(spans.every(s=>s.end<=door.offset-door.width/2 || s.start>=door.offset+door.width/2));
+  assert.ok(Math.abs(spans.reduce((sum,s)=>sum+s.end-s.start,0)-(room.width-door.width))<1e-8);
+  const engine=new NullEngine(), scene=new Scene(engine), mats=createMaterials(scene,room,false);
+  assert.notEqual(mats.walls.north,mats.walls.south);
+  assert.deepEqual(mats.walls.north.diffuseColor,mats.walls.south.diffuseColor);
+  scene.dispose();engine.dispose();
+});
+
+test('legacy saved layouts get the correction while retaining measurements; old file imports retain their arrangement', () => {
+  const legacy:any=freshConfig(); legacy.version=1;
+  delete legacy.room.wallFinishes; delete legacy.room.baseboardLED;
+  legacy.room.height=2.8; legacy.room.heightConfirmed=true;
+  legacy.room.openings[0].wall='north'; legacy.room.openings[0].offset=-.55;
+  legacy.furniture=legacy.furniture.filter((f:any)=>!['monitor-center','monitor-portrait'].includes(f.id));
+  delete legacy.furniture[0].cornerDesk;
+  const snapshot=JSON.stringify(legacy), upgraded=upgradeSavedLayout(legacy);
+  assert.equal(JSON.stringify(legacy),snapshot,'Do not mutate the backup');
+  assert.equal(upgraded.version,2); assert.equal(upgraded.room.height,2.8); assert.equal(upgraded.room.heightConfirmed,true);
+  assert.equal(upgraded.room.openings[0].wall,'south'); assert.equal(upgraded.furniture.filter(f=>f.kind==='monitor').length,4);
+  assert.ok(upgraded.furniture[0].cornerDesk);
+  const imported=validateConfig(legacy);
+  assert.equal(imported.room.openings[0].wall,'north'); assert.ok(!imported.furniture[0].cornerDesk);
 });
 
 test('rotated furniture uses oriented collisions and the camera slides along obstacles', () => {

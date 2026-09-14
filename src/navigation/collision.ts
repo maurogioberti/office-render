@@ -1,4 +1,5 @@
 import type { FurnitureConfig, PlannerConfig, RoomConfig, Vec3 } from '../config/types';
+import { furnitureFootprints } from '../furniture/footprint';
 
 export type Obstacle = { x: number; z: number; bottom: number; top: number; width: number; depth: number; rotation: number; id: string };
 
@@ -16,7 +17,13 @@ export function worldTransform(item: FurnitureConfig, furniture: FurnitureConfig
 export function obstacles(config: PlannerConfig): Obstacle[] {
   const result = config.furniture.flatMap(item => {
     const t = worldTransform(item, config.furniture);
-    return t.visible ? [{ id: item.id, x: t.position.x, z: t.position.z, bottom: t.position.y, top: t.position.y + item.dimensions.height, width: item.dimensions.width, depth: item.dimensions.depth, rotation: t.rotation }] : [];
+    const r = t.rotation * Math.PI / 180;
+    return t.visible ? furnitureFootprints(item).map(part => ({ id: item.id,
+      x: t.position.x + part.x * Math.cos(r) + part.z * Math.sin(r),
+      z: t.position.z - part.x * Math.sin(r) + part.z * Math.cos(r),
+      bottom: t.position.y, top: t.position.y + item.dimensions.height,
+      width: part.width, depth: part.depth, rotation: t.rotation,
+    })) : [];
   });
   const room = config.room;
   for (const f of room.cornerFeatures.filter(f => f.enabled)) result.push({ id: f.id, x: (f.corner.endsWith('east') ? 1 : -1) * (room.length / 2 - f.width / 2), z: (f.corner.startsWith('north') ? 1 : -1) * (room.width / 2 - f.depth / 2), bottom: 0, top: f.height, width: f.width, depth: f.depth, rotation: 0 });
