@@ -10,7 +10,6 @@ import { createLighting, aimDaylight } from './lighting';
 import { createBaseboardLighting } from './lighting/baseboards';
 import { placeScreenBehindChair } from './furniture/placement';
 import { Navigation } from './navigation/cameras';
-import { itemFitsRoom } from './navigation/collision';
 import { createMeasurements } from './room/measurements';
 import { UI } from './ui/panel';
 
@@ -100,7 +99,7 @@ export class Planner {
   }
   private buildFurniture() {
     this.gizmos.attachToMesh(null); this.selection?.dispose(); this.selection = null;
-    disposeFurniture(this.furniture); this.furniture = createFurniture(this.scene, this.config.furniture, this.materials);
+    disposeFurniture(this.furniture); this.furniture = createFurniture(this.scene, this.config.furniture, this.materials, this.config.room);
     for (const o of this.furniture.values()) {
       const d = o.config.dimensions;
       o.root.setBoundingInfo(new BoundingInfo(new Vector3(-d.width/2,0,-d.depth/2),new Vector3(d.width/2,d.height,d.depth/2)));
@@ -152,8 +151,6 @@ export class Planner {
   }
   private apply(next: PlannerConfig, rebuildRoom = false, record = true) {
     next = validateConfig(next);
-    const outside = next.furniture.find(item => !itemFitsRoom(item, next));
-    if (outside) throw new Error(`${outside.name} would extend outside the room. Adjust its position or dimensions first.`);
     if (JSON.stringify(next) === JSON.stringify(this.config)) return;
     if (record) this.history.push(this.config); this.gizmos.attachToMesh(null);
     if (rebuildRoom) { this.selection?.dispose(); this.selection = null; disposeFurniture(this.furniture); this.furniture.clear(); this.destroyRoom(); }
@@ -176,6 +173,7 @@ export class Planner {
         if (item.kind === 'desk' && field === 'height') config.furniture.filter(f=>f.parentId === item.id && f.kind === 'monitor').forEach(f=>{ f.position.y += value-oldHeight; });
       } else if(group === 'position' && ['x','y','z'].includes(field)) item.position[field as keyof FurnitureConfig['position']] = value;
       else if(group === 'cornerDesk' && field === 'worktopDepth' && item.cornerDesk) item.cornerDesk.worktopDepth = value;
+      else if(group === 'wallMount' && ['offset','height','maxReach'].includes(field) && item.monitor?.wallMount) item.monitor.wallMount[field as 'offset' | 'height' | 'maxReach'] = value;
       else if(group === 'transform' && field === 'rotation') item.rotation = ((value % 360) + 360) % 360;
     });
   }

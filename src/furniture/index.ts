@@ -1,12 +1,13 @@
-import { Color3, Mesh, MeshBuilder, Scene, StandardMaterial, Vector3 } from '@babylonjs/core';
-import type { FurnitureConfig } from '../config/types';
+import { Color3, DynamicTexture, Mesh, MeshBuilder, Scene, StandardMaterial, Vector3 } from '@babylonjs/core';
+import type { FurnitureConfig, RoomConfig } from '../config/types';
 import { solid, type Materials } from '../materials';
 import { box } from '../room/geometry';
 import { furnitureFootprints, monitorPanel } from './footprint';
+import { createWallMonitorArm } from './wallMounts';
 
 export type FurnitureObject = { config: FurnitureConfig; root: Mesh; meshes: Mesh[]; materials: StandardMaterial[] };
 
-export function createFurniture(scene: Scene, configs: FurnitureConfig[], mats: Materials) {
+export function createFurniture(scene: Scene, configs: FurnitureConfig[], mats: Materials, room?: RoomConfig) {
   const objects = new Map<string, FurnitureObject>();
   for (const config of configs) {
     const root = new Mesh(config.id, scene); root.isPickable = false;
@@ -71,12 +72,25 @@ export function createFurniture(scene: Scene, configs: FurnitureConfig[], mats: 
         if (config.monitor) {
           const panel = monitorPanel(config), bezel = config.monitor.bezel;
           const panelW = panel.width + 2 * bezel, panelH = panel.height + 2 * bezel;
-          const centerY = h - panelH / 2, screenZ = -d * .18;
+          const wallMounted = config.monitor.mount === 'wall';
+          const centerY = wallMounted ? h / 2 : h - panelH / 2, screenZ = wallMounted ? 0 : -d * .18;
           b('display shell', panelW, panelH, .035, 0, centerY, screenZ);
           const display = solid(scene, `${config.id} screen`, '#54716f', .15);
           display.emissiveColor = Color3.FromHexString('#789a98').scale(.18); object.materials.push(display);
           b('27 inch active panel', panel.width, panel.height, .002, 0, centerY, screenZ - .018, display);
-          if (config.monitor.mount === 'arm') {
+          if (wallMounted) {
+            if (room && config.monitor.wallMount) object.meshes.push(...createWallMonitorArm(scene, config, room, root, mats.dark));
+            // Use a canvas label in the browser; NullEngine tests need no DOM or raster assets.
+            if (scene.getEngine().getRenderingCanvas()) {
+              const label = new DynamicTexture(`${config.id} brand label`, { width: 256, height: 32 }, scene, false);
+              label.hasAlpha = true;
+              label.drawText(config.monitor.brand.toUpperCase(), null, 25, '600 26px sans-serif', '#bbc1c4', 'transparent', true);
+              const ink = solid(scene, `${config.id} brand ink`, '#ffffff');
+              ink.diffuseTexture = label; ink.opacityTexture = label;
+              object.materials.push(ink);
+              b('brand label', Math.min(panelW * .13, .065), bezel * .6, .0005, 0, centerY - panelH / 2 + bezel / 2, -.018, ink);
+            }
+          } else if (config.monitor.mount === 'arm') {
             b('arm clamp', .065, .025, .07, 0, .0125, d * .32, mats.dark);
             cylinder('arm post', .027, centerY * .78, 0, centerY * .39 + .025, d * .32, mats.dark);
             b('articulated arm', .03, .035, d * .5, 0, centerY * .78, d * .07, mats.dark);
@@ -120,7 +134,7 @@ export function createFurniture(scene: Scene, configs: FurnitureConfig[], mats: 
         break;
       }
     }
-    for (const mesh of object.meshes) { mesh.isPickable = true; mesh.metadata = { furnitureId: config.id }; }
+    for (const mesh of object.meshes) { mesh.isPickable = true; mesh.metadata = { ...mesh.metadata, furnitureId: config.id }; }
     root.setEnabled(config.visible);
   }
   for (const object of objects.values()) {
@@ -132,7 +146,7 @@ export function createFurniture(scene: Scene, configs: FurnitureConfig[], mats: 
 }
 
 export function disposeFurniture(objects: Map<string, FurnitureObject>) {
-  for (const object of objects.values()) { object.root.dispose(false, false); object.materials.forEach(m => m.dispose()); }
+  for (const object of objects.values()) { object.root.dispose(false, false); object.materials.forEach(m => m.dispose(false, true)); }
 }
 
 export function worldPosition(object: FurnitureObject) { return object.root.getAbsolutePosition().clone(); }

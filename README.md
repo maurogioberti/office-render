@@ -37,10 +37,11 @@ The walking camera stays at **1.70 m**. A 0.20 m body radius collides with room 
 
 - Interior footprint: **3.80 m along X × 2.60 m along Z**, following the supplied approximate measurements. Floor area: 9.88 m².
 - One Babylon world unit equals one meter. Y is up. The origin is at the center of the finished floor. North is +Z, east is +X.
-- The door remains on the **east short wall**. The corrected window is on the **south long wall**, opposite its original north-wall placement, with an initial **+0.80 m X offset** toward the door side. Wall assignment and offset are editable in Room measurements.
-- Ceiling height **2.65 m** is a provisional starting value. Opening widths, heights, sills, and offsets are also provisional.
-- The approximately **20 cm corner protrusion** and **40 cm beam/soffit** are configured but **disabled**. There is no perimeter beam. A beam record applies only to its explicitly selected wall and length. The corner record represents an inward solid protrusion; if the survey identifies an outward recess instead, its geometry should be specified before enabling it.
-- No photographs were accessible in this workspace. Appearance uses the described light textured plaster, beige marbled tile, wood door, and a placeholder window. The architecture is not claimed to be a verified photographic reconstruction.
+- The door remains on the **east short wall**. The window is on the **south long wall**, with a **+0.70 m X offset** toward the door side. Its default opening is **0.95 m wide × 1.35 m high**, including the upper shutter housing, with a **1.12 m sill**. A dark bronze frame surrounds the sliding sections and visible roller-shutter slats. Wall assignment, opening measurements, frame dimensions/color, housing height, and shutter appearance are editable in Room measurements.
+- Ceiling height **2.65 m** is provisional. The window top starts at 2.47 m, just below the 2.49 m underside of the south soffit. Check this relationship when changing the ceiling, sill, opening height, or soffit drop.
+- The reference photos support soffits on the **south window wall** and **west short wall opposite the door**. Only those two wall records are enabled. Starting **projection into the room is 0.40 m** and **vertical drop is 0.16 m**, configured separately. Neither the north wall nor the east door wall receives a soffit.
+- A provisional **southwest vertical corner step** occupies **0.24 m along X × 0.20 m along Z**, rising **2.49 m** to the soffit underside. Its exact profile and measurements still need confirmation; every dimension and its corner assignment remain configurable.
+- The real room photos are the architectural reference. The former planner screenshot showed a wide pale window without shutter details, missing soffits/corner geometry, and desk-mounted monitors; it was used to identify those mismatches. Photo perspective is insufficient to establish exact dimensions. Opening, ceiling, soffit, and step values remain provisional until measured.
 
 Change room measurements, opening positions, or individual features in **Room measurements**, or edit `src/config/office.ts`. Openings cut actual holes in the wall geometry. Floor tile divisions use a 0.60 m module. Geometry uses the configured interior dimensions; wall thickness extends outward from them.
 
@@ -48,13 +49,13 @@ Change room measurements, opening positions, or individual features in **Room me
 
 `src/config/office.ts` is the centralized starting configuration. Every furniture item specifies its identifier, kind, width/height/depth, bottom-center position, Y rotation in **degrees**, finish color, visibility, and optional parent.
 
-The current layout has seven furniture objects: an L-shaped corner desk, ergonomic chair, desktop PC, and four monitors. The privacy screen and movable drawer unit have been removed. “Left corner” is interpreted as the **southwest corner in plan view**. The desk runs **1.80 m along the west wall** and returns **1.50 m along the south window wall**, with **0.72 m worktop depth** and **0.76 m height**. Select the desk to change either run and its worktop depth. `dimensions.width/depth` define the outer L envelope; `cornerDesk.worktopDepth` defines both worktop strips. The L occupies the local -X and -Z sides.
+The current layout has seven furniture objects: an L-shaped corner desk, ergonomic chair, desktop PC, and four monitors. The privacy screen and movable drawer unit remain removed. The desk occupies the **southwest corner in plan view**, with **1.80 m along the west wall**, a **1.50 m return along the south window wall**, **0.72 m worktop depth**, and **0.76 m height**. Its bottom-center position, **(-1.02, 0, -0.17) m**, leaves clearance around the corner step. Select the desk to change either run and its worktop depth. `dimensions.width/depth` define the outer L envelope; `cornerDesk.worktopDepth` defines both worktop strips. The L occupies the local -X and -Z sides.
 
-The workstation uses **three landscape Samsung 27-inch monitors side by side**, slightly angled along the west run, and **one portrait monitor on the return**, on individual placeholder arms. Active display size is derived from a **27-inch, 16:9 diagonal** (about 0.598 × 0.336 m, swapped for portrait). No exact Samsung model was specified: bezels, casing, arm design, and mount height remain provisional. The outer `dimensions` contain the screen and arm; `monitor` config holds brand, diagonal, orientation, bezel, and arm/stand choice. Envelope edits are rejected if too small to contain the screen.
+The workstation uses **three landscape Samsung 27-inch monitors wrapping around the corner**, with inward-angled side screens, plus **one portrait Samsung 27-inch monitor close to the west end of the array**. All four use articulated **wall-mounted arms**, leaving the desktop free of feet and clamps. Active display size follows a **27-inch, 16:9 diagonal** (about 0.598 × 0.336 m, swapped for portrait). No exact Samsung model was specified; casing, bezel, and arm details remain placeholders.
 
-Monitors and PC are separate configurable objects parented to the desk. Their positions are relative to the desk's bottom center; moving or rotating the desk also moves them. Changing desk height keeps all four monitors on its top.
+Each monitor is an independent room object: moving, rotating, or changing the height of the desk does not move its screens or wall attachments. The PC remains a desk child. Monitor `position.y` is the bottom of its screen enclosure; `dimensions` describe that enclosure, excluding the arm. `monitor.wallMount` stores the anchor wall, offset from that wall's center, height above the floor, and maximum arm reach. Moving a screen updates the arm while its wall attachment stays fixed. The inspector exposes anchor offset, height, and reach; wall assignment is also editable in the central config or exported JSON. Screen position and yaw remain individually configurable. Screen enclosure edits must still contain the specified display panel.
 
-Placement is rejected if it extends outside the room. Furniture-to-furniture overlaps are allowed during editing to accommodate desk accessories and experimentation; inspect clearances in Walk mode. The generic storage and divider model types remain available for explicitly imported configurations or future iterations.
+Placement is rejected if it extends outside the room or intersects solid architectural features. Wall-mounted screens must remain within arm reach, with anchors on solid wall. Furniture-to-furniture overlaps remain available for desk accessories and experimentation; inspect clearances in Walk mode. The generic storage and divider model types remain available for explicitly imported configurations or future iterations.
 
 ## Baseboard LEDs and neutral walls
 
@@ -64,7 +65,7 @@ Walls remain neutral. `room.wallFinishes` provides independent north/south/east/
 
 UI edits are automatically saved to this browser's local storage, and survive refreshes. **Export layout** downloads all room and furniture configuration as JSON. The upload icon imports a validated layout. Undo/redo keeps up to 60 edits for the current session. Nothing is sent to a server.
 
-**Saved local layouts take precedence over `office.ts`.** The current scene revision saves under `roomwork.office.v3` and still uses JSON schema version 2. Existing v2 browser layouts migrate by removing the privacy screen and drawer (and attached contents), retaining all other edits. Older v1 saves receive the corrected corner workstation without those two objects. Prior storage entries remain intact as backups. Later edits persist normally. Explicitly importing an old JSON preserves that file's arrangement, so previous layouts can still be restored. Reset this object restores its source defaults. The UI does not rewrite source files.
+**Saved local layouts take precedence over `office.ts`.** The current scene revision saves under `roomwork.office.v4` and still uses JSON schema version 2. Existing v3, v2, and v1 browser layouts receive the photo-based architecture and wall-mounted corner workstation update; the privacy screen and drawer remain removed. Prior storage entries remain intact as backups. Later edits persist normally. Explicitly importing an old JSON preserves that file's arrangement, subject to validation, so previous layouts can still be restored. Reset this object restores its source defaults. The UI does not rewrite source files.
 
 ## Structure
 
@@ -72,8 +73,8 @@ UI edits are automatically saved to this browser's local storage, and survive re
 src/
   config/         starting measurements, types, validation, storage, history
   room/           room shell, openings, floor grid and dimension annotations
-  architecture/   window, door, individually configured beam/corner features
-  furniture/      metric placeholder meshes and parent relationships
+  architecture/   bronze window/shutter, door, individual soffits and corner steps
+  furniture/      metric placeholder meshes, wall arms and parent relationships
   materials/      plaster grain, marble tile, wood, metal and furniture finishes
   lighting/       window-directed daylight, shadows, configurable baseboard LEDs
   navigation/     orbit/first-person cameras, pointer lock, swept collisions

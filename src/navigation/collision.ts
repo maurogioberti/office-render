@@ -1,7 +1,8 @@
 import type { FurnitureConfig, PlannerConfig, RoomConfig, Vec3 } from '../config/types';
 import { furnitureFootprints } from '../furniture/footprint';
+import { wallMountFootprints } from '../furniture/wallMounts';
 
-export type Obstacle = { x: number; z: number; bottom: number; top: number; width: number; depth: number; rotation: number; id: string };
+export type Obstacle = { x: number; z: number; bottom: number; top: number; width: number; depth: number; rotation: number; id: string; support?: boolean };
 
 /** World-space footprint, including all parent rotations and translations. */
 export function worldTransform(item: FurnitureConfig, furniture: FurnitureConfig[]): { position: Vec3; rotation: number; visible: boolean } {
@@ -15,7 +16,7 @@ export function worldTransform(item: FurnitureConfig, furniture: FurnitureConfig
 }
 
 export function obstacles(config: PlannerConfig): Obstacle[] {
-  const result = config.furniture.flatMap(item => {
+  const result: Obstacle[] = config.furniture.flatMap(item => {
     const t = worldTransform(item, config.furniture);
     const r = t.rotation * Math.PI / 180;
     return t.visible ? furnitureFootprints(item).map(part => ({ id: item.id,
@@ -26,6 +27,9 @@ export function obstacles(config: PlannerConfig): Obstacle[] {
     })) : [];
   });
   const room = config.room;
+  for (const item of config.furniture) {
+    if (item.monitor?.mount === 'wall' && item.monitor.wallMount && worldTransform(item,config.furniture).visible) result.push(...wallMountFootprints(item,room));
+  }
   for (const f of room.cornerFeatures.filter(f => f.enabled)) result.push({ id: f.id, x: (f.corner.endsWith('east') ? 1 : -1) * (room.length / 2 - f.width / 2), z: (f.corner.startsWith('north') ? 1 : -1) * (room.width / 2 - f.depth / 2), bottom: 0, top: f.height, width: f.width, depth: f.depth, rotation: 0 });
   for (const b of room.beams.filter(b => b.enabled)) {
     const alongX = b.wall === 'north' || b.wall === 'south';
@@ -81,4 +85,21 @@ export function itemFitsRoom(item: FurnitureConfig, config: PlannerConfig) {
   const halfX = (Math.abs(Math.cos(r)) * item.dimensions.width + Math.abs(Math.sin(r)) * item.dimensions.depth) / 2;
   const halfZ = (Math.abs(Math.sin(r)) * item.dimensions.width + Math.abs(Math.cos(r)) * item.dimensions.depth) / 2;
   return Math.abs(t.position.x) + halfX <= config.room.length / 2 + .0001 && Math.abs(t.position.z) + halfZ <= config.room.width / 2 + .0001 && t.position.y >= 0 && t.position.y + item.dimensions.height <= config.room.height + .0001;
+}
+
+/** Separating-axis test for actual rotated footprints, including the open L desk bay. */
+export function rectanglesOverlap(a: Obstacle, b: Obstacle) {
+  if (a.top <= b.bottom + .0001 || b.top <= a.bottom + .0001) return false;
+  const axes = (angle: number) => { const r = angle * Math.PI / 180; return [[Math.cos(r), -Math.sin(r)], [Math.sin(r), Math.cos(r)]]; };
+  const aa = axes(a.rotation), bb = axes(b.rotation);
+  return [...aa, ...bb].every(([x, z]) => {
+    const radius = (o: Obstacle, basis: number[][]) => Math.abs(x * basis[0][0] + z * basis[0][1]) * o.width / 2 + Math.abs(x * basis[1][0] + z * basis[1][1]) * o.depth / 2;
+    return Math.abs((a.x - b.x) * x + (a.z - b.z) * z) < radius(a, aa) + radius(b, bb) - .0001;
+  });
+}
+
+export function architectureConflict(item: FurnitureConfig, config: PlannerConfig) {
+  const all = obstacles(config), furnitureIds = new Set(config.furniture.map(f => f.id));
+  const architecture = all.filter(o => !furnitureIds.has(o.id));
+  return architecture.find(a => all.some(o => o.id === item.id && rectanglesOverlap(o, a)))?.id;
 }

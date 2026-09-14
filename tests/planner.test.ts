@@ -11,14 +11,15 @@ import { createFurniture } from '../src/furniture';
 import { monitorPanel } from '../src/furniture/footprint';
 import { baseboardSpans } from '../src/lighting/baseboards';
 
-test('default layout has the stated footprint and door/window orientation; unlocated features stay disabled', () => {
+test('default layout preserves the measured footprint and uses only photographed architectural features', () => {
   const config = validateConfig(freshConfig());
   assert.equal(config.room.length, 3.8); assert.equal(config.room.width, 2.6);
   assert.equal(config.room.openings.find(o=>o.kind === 'door')!.wall, 'east');
   assert.equal(config.room.openings.find(o=>o.kind === 'window')!.wall, 'south');
   assert.ok(config.room.openings.find(o=>o.kind === 'window')!.offset > 0);
   assert.equal(config.room.heightConfirmed, false);
-  assert.ok(config.room.beams.every(b=>!b.enabled)); assert.ok(config.room.cornerFeatures.every(f=>!f.enabled));
+  assert.deepEqual(config.room.beams.filter(b=>b.enabled).map(b=>b.wall), ['south','west']);
+  assert.equal(config.room.cornerFeatures[0].corner,'south-west'); assert.ok(config.room.cornerFeatures[0].enabled);
   assert.ok(config.furniture.every(f=>itemFitsRoom(f, config)));
   assert.equal(config.furniture.length,7);
   assert.ok(!config.furniture.some(f=>f.kind==='divider' || f.kind==='storage'));
@@ -29,10 +30,14 @@ test('invalid imports reject NaN, negative sizes, duplicate IDs, parent cycles a
   mutate(c=>{c.furniture[0].position.x=NaN;});
   mutate(c=>{c.furniture[0].dimensions.width=-1;});
   mutate(c=>{c.furniture[1].id=c.furniture[0].id;});
-  mutate(c=>{c.furniture[0].parentId='monitor-left';});
+  mutate(c=>{c.furniture[0].parentId='pc';});
   mutate(c=>{c.room.openings[0].offset=10;});
   mutate(c=>{c.room.openings[1].sill=.1;});
   mutate(c=>{c.room.beams[0].enabled=true; c.room.beams[0].length=10;});
+  mutate(c=>{c.room.openings[0].windowDetail!.frameWidth=.1;c.room.openings[0].windowDetail!.housingHeight=.08;});
+  mutate(c=>{c.furniture[0].position.z=-.3;});
+  mutate(c=>{c.furniture[0].position.x=20;});
+  mutate(c=>{c.furniture.find(f=>f.id==='monitor-left')!.monitor!.wallMount!.offset=.7;});
 });
 
 test('undo/redo is lossless and a new edit clears the redo branch', () => {
@@ -74,6 +79,8 @@ test('L desk leaves the chair bay open and its two runs rotate with matching col
 
 test('the room has a traversable route from the door into the workstation', () => {
   const config=freshConfig(), items=obstacles(config), step=.05;
+  const chair=config.furniture.find(f=>f.id==='chair')!, angle=chair.rotation*Math.PI/180;
+  const approach={x:chair.position.x-Math.sin(angle)*.74,z:chair.position.z-Math.cos(angle)*.74};
   // Flood fill of a 40 cm body on the interior grid, including the actual chair.
   const start=findWalkStart(config)!, queue=[[Math.round(start.x/step),Math.round(start.z/step)]], seen=new Set<string>();
   let reached=false;
@@ -81,7 +88,7 @@ test('the room has a traversable route from the door into the workstation', () =
     const [x,z]=queue[i], key=`${x},${z}`;
     if(seen.has(key))continue; seen.add(key);
     if(!canStand(x*step,z*step,config.room,items))continue;
-    if(Math.hypot(x*step+.57,z*step-.68)<.09){reached=true;break;}
+    if(Math.hypot(x*step-approach.x,z*step-approach.z)<.09){reached=true;break;}
     queue.push([x+1,z],[x-1,z],[x,z+1],[x,z-1]);
   }
   assert.ok(reached,'Door-to-workstation path must stay open');
@@ -109,9 +116,9 @@ test('four Samsung 27 inch panels have three landscape orientations, one portrai
   assert.equal(monitors.filter(m=>m.monitor!.orientation==='landscape').length,3);
   assert.equal(monitors.filter(m=>m.monitor!.orientation==='portrait').length,1);
   for(const m of monitors) {
-    assert.equal(m.monitor!.brand,'Samsung'); assert.equal(m.monitor!.mount,'arm');
+    assert.equal(m.monitor!.brand,'Samsung'); assert.equal(m.monitor!.mount,'wall');
     const p=monitorPanel(m); assert.ok(Math.abs(Math.hypot(p.width,p.height)-27*.0254)<1e-8);
-    assert.equal(m.parentId,'desk');
+    assert.equal(m.parentId,undefined); assert.ok(m.monitor!.wallMount);
   }
   const invalid=freshConfig(); invalid.furniture.find(f=>f.kind==='monitor')!.dimensions.width=.1;
   assert.throws(()=>validateConfig(invalid),/monitor envelope/);
@@ -156,19 +163,21 @@ test('rotated furniture uses oriented collisions and the camera slides along obs
 
 test('hidden furniture and disabled architecture do not block; enabled beam/corner features do', () => {
   const config=freshConfig();
-  assert.ok(!obstacles(config).some(o=>o.id==='corner-feature' || o.id==='ceiling-beam'));
+  config.room.beams.forEach(b=>b.enabled=false); config.room.cornerFeatures.forEach(f=>f.enabled=false);
+  assert.ok(!obstacles(config).some(o=>o.id==='corner-step' || o.id==='window-soffit'));
   config.furniture.find(f=>f.id==='desk')!.visible=false;
-  assert.ok(!obstacles(config).some(o=>['desk','pc','monitor-left','monitor-right'].includes(o.id)));
+  assert.ok(!obstacles(config).some(o=>['desk','pc'].includes(o.id)));
+  assert.ok(obstacles(config).some(o=>o.id==='monitor-left'),'Wall monitors are independent of desk visibility');
   config.room.cornerFeatures[0].enabled=true;
-  assert.ok(!canStand(-1.6,1.05,config.room,obstacles(config)));
+  assert.ok(!canStand(-1.65,-1.05,config.room,obstacles(config)));
   config.room.beams[0].enabled=true; config.room.beams[0].drop=1;
-  assert.ok(!canStand(0,1,config.room,obstacles(config)));
+  assert.ok(!canStand(0,-1,config.room,obstacles(config)));
 });
 
 test('nested transforms match Babylon world matrices after a desk rotation', () => {
   const engine = new NullEngine(), scene = new Scene(engine), config=freshConfig();
   config.furniture.find(f=>f.id==='desk')!.rotation=37;
-  const mats=createMaterials(scene,config.room,false), objects=createFurniture(scene,config.furniture,mats);
+  const mats=createMaterials(scene,config.room,false), objects=createFurniture(scene,config.furniture,mats,config.room);
   for(const item of config.furniture) {
     const computed=worldTransform(item,config.furniture), actual=objects.get(item.id)!.root.getAbsolutePosition();
     assert.ok(Vector3.Distance(actual,new Vector3(computed.position.x,computed.position.y,computed.position.z))<.00001,item.id);
@@ -176,7 +185,7 @@ test('nested transforms match Babylon world matrices after a desk rotation', () 
   scene.dispose(); engine.dispose();
 });
 
-test('room meshes have exact interior dimensions, real window/door holes, and no default beams', () => {
+test('room meshes have exact interior dimensions and real window/door holes', () => {
   const engine=new NullEngine(), scene=new Scene(engine), config=freshConfig(), mats=createMaterials(scene,config.room,false);
   const room=createRoom(scene,config.room,mats), features=createArchitecture(scene,config.room,mats,room);
   scene.meshes.forEach(m=>m.computeWorldMatrix(true));
@@ -198,12 +207,13 @@ test('room meshes have exact interior dimensions, real window/door holes, and no
 });
 
 test('furniture geometry stays inside the configured metric envelopes and is selectable', () => {
-  const engine=new NullEngine(), scene=new Scene(engine), config=freshConfig(), mats=createMaterials(scene,config.room,false), objects=createFurniture(scene,config.furniture,mats);
+  const engine=new NullEngine(), scene=new Scene(engine), config=freshConfig(), mats=createMaterials(scene,config.room,false), objects=createFurniture(scene,config.furniture,mats,config.room);
   for(const object of objects.values()) {
     const {width:w,height:h,depth:d}=object.config.dimensions;
     const inverse=Matrix.Invert(object.root.computeWorldMatrix(true));
     for(const mesh of object.meshes) {
       mesh.computeWorldMatrix(true); assert.equal(mesh.metadata.furnitureId,object.config.id); assert.ok(mesh.isPickable);
+      if(mesh.metadata.wallMountSupport) continue; // Independent wall arms have their own reach envelope.
       for(const point of mesh.getBoundingInfo().boundingBox.vectorsWorld) {
         const p=Vector3.TransformCoordinates(point,inverse);
         assert.ok(Math.abs(p.x)<=w/2+.001,`${mesh.name}: X ${p.x}`);

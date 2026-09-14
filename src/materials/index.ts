@@ -16,8 +16,15 @@ export function createMaterials(scene: Scene, room: RoomConfig, textures = true)
   const trim = solid(scene, 'Warm white joinery', '#eeece3');
   const dark = solid(scene, 'Graphite powder coat', '#3e4643', 0.2);
   const glass = solid(scene, 'Daylight glass', '#c8dedc', 0.2);
-  glass.emissiveColor = Color3.FromHexString('#b8d6d9').scale(0.16);
+  glass.alpha = .18;
+  glass.emissiveColor = Color3.FromHexString('#b8d6d9').scale(.035);
   const metal = solid(scene, 'Brushed metal', '#a8aca3', 0.6);
+  // Each opening owns its finish so changing a window never recolors the skirting.
+  const windowFrames: Record<string, StandardMaterial> = {};
+  for (const opening of room.openings.filter(o => o.kind === 'window')) {
+    windowFrames[opening.id] = solid(scene, `${opening.id} bronze frame`, opening.windowDetail?.frameColor ?? '#4c4636', .22);
+  }
+  const shutter = solid(scene, 'Pale roller shutter', '#d7d5cc', .12);
   if (textures) {
     let seed = 714;
     const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
@@ -58,11 +65,12 @@ export function createMaterials(scene: Scene, room: RoomConfig, textures = true)
     return [side, material];
   })) as Record<Wall, StandardMaterial>;
   floor.maxSimultaneousLights = 10;
-  return { wall, walls, floor, wood, trim, dark, glass, metal };
+  return { wall, walls, floor, wood, trim, dark, glass, metal, windowFrames, shutter };
 }
 export type Materials = ReturnType<typeof createMaterials>;
 
 export function disposeMaterials(mats: Materials) {
   Object.values(mats.walls).forEach(m => m.dispose());
-  [mats.wall,mats.floor,mats.wood,mats.trim,mats.dark,mats.glass,mats.metal].forEach(m => m.dispose(false, true));
+  Object.values(mats.windowFrames).forEach(m => m.dispose());
+  [mats.wall,mats.floor,mats.wood,mats.trim,mats.dark,mats.glass,mats.metal,mats.shutter].forEach(m => m.dispose(false, true));
 }

@@ -14,7 +14,10 @@ export type FurnitureConfig = {
   parentId?: string;
   /** L footprint occupies local -X and -Z sides. Outer runs use width/depth. */
   cornerDesk?: { worktopDepth: number };
-  monitor?: { brand: string; diagonalInches: number; orientation: 'landscape' | 'portrait'; mount: 'arm' | 'stand'; bezel: number };
+  monitor?: { brand: string; diagonalInches: number; orientation: 'landscape' | 'portrait'; mount: 'arm' | 'stand' | 'wall'; bezel: number;
+    /** Wall attachment stays fixed when the monitor or desk moves. Coordinates in meters. */
+    wallMount?: { wall: Wall; offset: number; height: number; maxReach: number };
+  };
 };
 export type OpeningConfig = {
   id: string;
@@ -25,6 +28,8 @@ export type OpeningConfig = {
   height: number;
   sill: number;
   confirmed: boolean;
+  /** Overall opening height includes the housing. Photographic proportions, not a surveyed product. */
+  windowDetail?: { frameColor: string; frameWidth: number; frameDepth: number; housingHeight: number; slatPitch: number; shutterClosed: boolean };
 };
 export type RoomConfig = {
   length: number;
