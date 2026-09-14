@@ -64,6 +64,20 @@ test('swept movement cannot tunnel through a thin obstacle, including a large st
   assert.ok(wall.x<=1.7); assert.ok(wall.x>1.65);
 });
 
+test('walking accepts Babylon camera vectors without losing coordinate accessors', () => {
+  const config=freshConfig(), start=findWalkStart(config)!;
+  const cameraPosition=new Vector3(start.x,start.y,start.z);
+  const moved=moveWithCollisions(cameraPosition,-.06,0,config.room,obstacles(config));
+  assert.ok(Number.isFinite(moved.x) && Number.isFinite(moved.y) && Number.isFinite(moved.z),'Camera coordinates must stay finite after the first walking frame');
+  assert.ok(Math.abs(moved.x-(start.x-.06))<1e-8);
+  assert.equal(moved.y,1.7); assert.equal(moved.z,start.z);
+  assert.deepEqual(findWalkStart(config,cameraPosition),start,'Re-entering Walk mode must read the camera coordinates');
+  assert.equal(canStand(NaN,start.z,config.room,[]),false,'Invalid coordinates are not valid standing positions');
+  assert.equal(canStand(start.x,Infinity,config.room,[]),false);
+  const recovered=findWalkStart(config,new Vector3(NaN,1.7,NaN))!;
+  assert.deepEqual(recovered,start,'An invalid previous camera position falls back to the door');
+});
+
 test('L desk leaves the chair bay open and its two runs rotate with matching collisions', () => {
   const config = freshConfig(), desk = config.furniture.find(f=>f.id==='desk')!;
   const parts = obstacles(config).filter(o=>o.id==='desk');

@@ -48,13 +48,15 @@ export function circleIntersects(x: number, z: number, radius: number, obstacle:
 }
 
 export function canStand(x: number, z: number, room: RoomConfig, items: Obstacle[], radius = .2, eyeHeight = 1.7) {
+  if (!Number.isFinite(x) || !Number.isFinite(z)) return false;
   if (eyeHeight + .1 > room.height || Math.abs(x) > room.length / 2 - radius || Math.abs(z) > room.width / 2 - radius) return false;
   return !items.some(o => o.bottom < eyeHeight + .1 && o.top > .08 && circleIntersects(x, z, radius, o));
 }
 
 /** Small swept steps prevent tunneling through thin dividers at low frame rates. */
 export function moveWithCollisions(position: Vec3, dx: number, dz: number, room: RoomConfig, items: Obstacle[], radius = .2, eyeHeight = 1.7): Vec3 {
-  const next = { ...position }, steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / .025));
+  // Babylon camera vectors expose x/y/z through accessors; object spread loses them.
+  const next = { x: position.x, y: position.y, z: position.z }, steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / .025));
   const sx = dx / steps, sz = dz / steps;
   for (let i = 0; i < steps; i++) {
     if (canStand(next.x + sx, next.z, room, items, radius, eyeHeight)) next.x += sx;
@@ -65,7 +67,7 @@ export function moveWithCollisions(position: Vec3, dx: number, dz: number, room:
 
 export function findWalkStart(config: PlannerConfig, previous?: Vec3): Vec3 | null {
   const items = obstacles(config), room = config.room;
-  if (previous && canStand(previous.x, previous.z, room, items)) return { ...previous, y: 1.7 };
+  if (previous && canStand(previous.x, previous.z, room, items)) return { x: previous.x, y: 1.7, z: previous.z };
   // Start inside the door, facing into the room; search an unobstructed point if occupied.
   const door = room.openings.find(o => o.kind === 'door');
   if (door) {

@@ -37,6 +37,7 @@ export class Navigation {
     document.addEventListener('pointerlockerror', () => this.onMessage('Mouse capture was blocked. Click the room to try again.'), { signal });
     document.addEventListener('mousemove', e => {
       if (this.mode !== 'walk' || document.pointerLockElement !== canvas) return;
+      if (!Number.isFinite(e.movementX) || !Number.isFinite(e.movementY)) return;
       this.walk.rotation.y += e.movementX * .002;
       this.walk.rotation.x = Math.max(-1.45, Math.min(1.45, this.walk.rotation.x + e.movementY * .002));
     }, { signal });
