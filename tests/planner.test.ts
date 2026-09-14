@@ -21,7 +21,7 @@ test('default layout preserves the measured footprint and uses only photographed
   assert.deepEqual(config.room.beams.filter(b=>b.enabled).map(b=>b.wall), ['south','west']);
   assert.equal(config.room.cornerFeatures[0].corner,'south-west'); assert.ok(config.room.cornerFeatures[0].enabled);
   assert.ok(config.furniture.every(f=>itemFitsRoom(f, config)));
-  assert.equal(config.furniture.length,7);
+  assert.equal(config.furniture.length,11);
   assert.ok(!config.furniture.some(f=>f.kind==='divider' || f.kind==='storage'));
 });
 
@@ -81,7 +81,7 @@ test('walking accepts Babylon camera vectors without losing coordinate accessors
 test('L desk leaves the chair bay open and its two runs rotate with matching collisions', () => {
   const config = freshConfig(), desk = config.furniture.find(f=>f.id==='desk')!;
   const parts = obstacles(config).filter(o=>o.id==='desk');
-  assert.equal(parts.length,2); assert.equal(desk.dimensions.depth,1.8); assert.equal(desk.dimensions.width,1.5);
+  assert.equal(parts.length,2); assert.equal(desk.dimensions.depth,1.9); assert.equal(desk.dimensions.width,2.4);
   assert.ok(canStand(-.6,.1,config.room,parts),'Inner L corner is open');
   assert.ok(!canStand(-1.5,0,config.room,parts),'West worktop collides');
   assert.ok(!canStand(-.6,-.9,config.room,parts),'South return collides');
@@ -116,16 +116,17 @@ test('removing retired objects preserves room settings and unrelated furniture e
     {id:'storage',name:'Drawer',kind:'storage',dimensions:{width:.55,height:.65,depth:.42},position:{x:1.32,y:0,z:.97},rotation:0,color:'#d2c3aa',visible:true},
   );
   const snapshot=JSON.stringify(config), migrated=removeRetiredFurniture(config);
-  assert.equal(JSON.stringify(config),snapshot); assert.equal(migrated.furniture.length,7);
+  assert.equal(JSON.stringify(config),snapshot); assert.equal(migrated.furniture.length,11);
   assert.equal(migrated.room.baseboardLED.color,'#44aaff');
   assert.equal(migrated.furniture.find(f=>f.id==='chair')!.position.x,-.45);
   assert.ok(!obstacles(migrated).some(o=>['divider','storage'].includes(o.id)));
   assert.deepEqual(removeRetiredFurniture(migrated),migrated);
-  assert.ok(!upgradeSavedLayout(config).furniture.some(f=>['divider','storage'].includes(f.id)));
+  const legacy=structuredClone(config); legacy.furniture=legacy.furniture.filter(f=>!f.id.startsWith('work-'));
+  assert.ok(!upgradeSavedLayout(legacy).furniture.some(f=>['divider','storage'].includes(f.id)));
 });
 
-test('four Samsung 27 inch panels have three landscape orientations, one portrait, and arms', () => {
-  const monitors=freshConfig().furniture.filter(f=>f.kind==='monitor');
+test('four personal Samsung 27 inch panels retain three landscape orientations, one portrait, and wall arms', () => {
+  const monitors=freshConfig().furniture.filter(f=>f.monitor?.mount==='wall');
   assert.equal(monitors.length,4);
   assert.equal(monitors.filter(m=>m.monitor!.orientation==='landscape').length,3);
   assert.equal(monitors.filter(m=>m.monitor!.orientation==='portrait').length,1);
@@ -156,12 +157,12 @@ test('legacy saved layouts get the correction while retaining measurements; old 
   delete legacy.room.wallFinishes; delete legacy.room.baseboardLED;
   legacy.room.height=2.8; legacy.room.heightConfirmed=true;
   legacy.room.openings[0].wall='north'; legacy.room.openings[0].offset=-.55;
-  legacy.furniture=legacy.furniture.filter((f:any)=>!['monitor-center','monitor-portrait'].includes(f.id));
+  legacy.furniture=legacy.furniture.filter((f:any)=>!['monitor-center','monitor-portrait'].includes(f.id) && !f.id.startsWith('work-'));
   delete legacy.furniture[0].cornerDesk;
   const snapshot=JSON.stringify(legacy), upgraded=upgradeSavedLayout(legacy);
   assert.equal(JSON.stringify(legacy),snapshot,'Do not mutate the backup');
   assert.equal(upgraded.version,2); assert.equal(upgraded.room.height,2.8); assert.equal(upgraded.room.heightConfirmed,true);
-  assert.equal(upgraded.room.openings[0].wall,'south'); assert.equal(upgraded.furniture.filter(f=>f.kind==='monitor').length,4);
+  assert.equal(upgraded.room.openings[0].wall,'south'); assert.equal(upgraded.furniture.filter(f=>f.monitor?.mount==='wall').length,4);
   assert.ok(upgraded.furniture[0].cornerDesk);
   const imported=validateConfig(legacy);
   assert.equal(imported.room.openings[0].wall,'north'); assert.ok(!imported.furniture[0].cornerDesk);

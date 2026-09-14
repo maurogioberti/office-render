@@ -3,6 +3,8 @@ import type { FurnitureConfig } from '../config/types';
 /** Shared by visible worktops and walking collisions: never fill the L's chair bay. */
 export function furnitureFootprints(item: FurnitureConfig) {
   const { width, depth } = item.dimensions;
+  // The assembly envelope is an editing aid, not a solid wall across the desk.
+  if (item.workZone) return [{ x: 0, z: depth/2-.07, width: .1, depth: .12 }];
   if (!item.cornerDesk) return [{ x: 0, z: 0, width, depth }];
   const t = item.cornerDesk.worktopDepth;
   return [

@@ -1,12 +1,15 @@
 import { freshConfig } from './office';
 import type { PlannerConfig } from './types';
 import { monitorPanel } from '../furniture/footprint';
+import { createWorkZone } from './office';
+import { resizeCornerDesk } from '../furniture/deskLayout';
+import { workZonePlacementIssue } from '../furniture/workZonePlacement';
 import { monitorMountGeometry, wallMountFootprints } from '../furniture/wallMounts';
 import { architectureConflict, itemFitsRoom, obstacles, rectanglesOverlap } from '../navigation/collision';
 
-// Layout revision 4 applies the photographed architecture; previous saves remain backups.
-export const STORAGE_KEY = 'roomwork.office.v4';
-export const PREVIOUS_STORAGE_KEY = 'roomwork.office.v3';
+// Layout revision 5 expands only furniture. The approved v4 room stays exactly as saved.
+export const STORAGE_KEY = 'roomwork.office.v5';
+export const PREVIOUS_STORAGE_KEY = 'roomwork.office.v4';
 export const LEGACY_STORAGE_KEY = 'roomwork.office.v1';
 const WALLS = ['north', 'south', 'east', 'west'];
 const finite = (n: unknown, min: number, max: number): n is number => typeof n === 'number' && Number.isFinite(n) && n >= min && n <= max;
@@ -63,16 +66,27 @@ export function validateConfig(input: unknown): PlannerConfig {
   if (config.furniture.length > 100) fail('Layouts support up to 100 furniture objects.');
   for (const item of config.furniture) {
     id(item.id);
-    if (typeof item.name !== 'string' || !item.name.trim() || item.name.length > 100 || !['desk','chair','pc','monitor','storage','divider'].includes(item.kind) || typeof item.visible !== 'boolean' || !/^#[0-9a-f]{6}$/i.test(item.color)) fail('A furniture object is invalid.');
+    if (typeof item.name !== 'string' || !item.name.trim() || item.name.length > 100 || !['desk','chair','pc','monitor','storage','divider','work-zone','laptop'].includes(item.kind) || typeof item.visible !== 'boolean' || !/^#[0-9a-f]{6}$/i.test(item.color)) fail('A furniture object is invalid.');
     if (!item.dimensions || !Object.values(item.dimensions).every(n => finite(n, .05, 10)) || !['width','height','depth'].every(k => k in item.dimensions)) fail('Furniture dimensions must be between 0.05 and 10 meters.');
     if (!item.position || !['x','y','z'].every(k => finite(item.position[k as keyof typeof item.position], -30, 30)) || !finite(item.rotation, -36000, 36000)) fail('A furniture transform is invalid.');
     if (item.parentId !== undefined && (typeof item.parentId !== 'string' || !config.furniture.some(f => f.id === item.parentId))) fail('A furniture parent does not exist.');
+    if (item.onDesktop !== undefined && (typeof item.onDesktop !== 'boolean' || config.furniture.find(f=>f.id===item.parentId)?.kind!=='desk')) fail('A desktop attachment needs a desk parent.');
     if (item.cornerDesk && (item.kind !== 'desk' || !finite(item.cornerDesk.worktopDepth, .3, Math.min(item.dimensions.width, item.dimensions.depth) - .15))) fail('Worktop depth must leave an open inner corner in the L-shaped desk.');
+    if (item.kind==='work-zone' || item.workZone) {
+      const s=item.workZone;
+      if (item.kind!=='work-zone' || !item.onDesktop || !s || !finite(s.surfaceOffset,.025,.1) || !finite(s.columnHeight,.15,.8) || !finite(s.armReach,.15,1) || item.dimensions.depth<.2 || item.dimensions.width<.15 || item.dimensions.height<s.surfaceOffset+s.columnHeight+.03) fail('The work zone needs a valid desktop clamp, column, and arm reach.');
+      if (config.furniture.filter(f=>f.parentId===item.id && f.kind==='monitor').length>2) fail('The shared dual arm supports at most two monitors.');
+    }
+    if (item.kind==='laptop' || item.laptop) {
+      if (item.kind!=='laptop' || !item.laptop || !finite(item.laptop.openingAngle,85,120) || item.dimensions.width<.2 || item.dimensions.depth<.15 || item.dimensions.height<.12) fail('The laptop needs a supported envelope and opening angle between 85 and 120 degrees.');
+    }
     if (item.monitor) {
       const m = item.monitor;
-      if (item.kind !== 'monitor' || typeof m.brand !== 'string' || m.brand.length > 60 || !finite(m.diagonalInches, 10, 60) || !['landscape','portrait'].includes(m.orientation) || !['arm','stand','wall'].includes(m.mount) || !finite(m.bezel, .001, .04)) fail('Monitor specifications are invalid.');
+      if (item.kind !== 'monitor' || typeof m.brand !== 'string' || m.brand.length > 60 || !finite(m.diagonalInches, 10, 60) || !['landscape','portrait'].includes(m.orientation) || !['arm','stand','wall','shared-arm'].includes(m.mount) || !finite(m.bezel, .001, .04)) fail('Monitor specifications are invalid.');
       const p = monitorPanel(item);
-      if (item.dimensions.width < p.width + 2*m.bezel || item.dimensions.height < p.height + 2*m.bezel + (m.mount === 'wall' ? 0 : .08) || item.dimensions.depth < (m.mount === 'wall' ? .05 : .16)) fail('The monitor envelope must fit its screen diagonal, bezel, and mount.');
+      const externalArm=m.mount==='wall' || m.mount==='shared-arm';
+      if (item.dimensions.width < p.width + 2*m.bezel || item.dimensions.height < p.height + 2*m.bezel + (externalArm ? 0 : .08) || item.dimensions.depth < (externalArm ? .05 : .16)) fail('The monitor envelope must fit its screen diagonal, bezel, and mount.');
+      if (m.mount==='shared-arm' && config.furniture.find(f=>f.id===item.parentId)?.kind!=='work-zone') fail('A shared-arm screen must belong to the dual-arm work zone.');
       if (m.mount === 'wall') {
         const anchor = m.wallMount;
         if (item.parentId || !anchor || !WALLS.includes(anchor.wall) || !finite(anchor.offset, -15, 15) || !finite(anchor.height, .08, room.height - .08) || !finite(anchor.maxReach, .1, 1.5)) fail('A wall-mounted monitor needs an independent, valid wall anchor.');
@@ -95,6 +109,7 @@ export function validateConfig(input: unknown): PlannerConfig {
   for (const item of config.furniture) {
     if (!itemFitsRoom(item,config)) fail(`${item.name} would extend outside the room. Adjust its position or dimensions first.`);
     if (architectureConflict(item,config)) fail(`${item.name} would intersect the corner step or soffit. Adjust its position or dimensions first.`);
+    if (item.workZone) { const issue=workZonePlacementIssue(item,config); if(issue) fail(issue); }
   }
   // Return a detached plain-data copy, never the caller's mutable object.
   return structuredClone(config);
@@ -104,7 +119,17 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) return { config: validateConfig(JSON.parse(saved)) };
-    for (const key of [PREVIOUS_STORAGE_KEY, 'roomwork.office.v2', LEGACY_STORAGE_KEY]) {
+    const previous=localStorage.getItem(PREVIOUS_STORAGE_KEY);
+    if (previous) {
+      const original=validateConfig(JSON.parse(previous));
+      try {
+        const config=upgradeWorkLayout(original), persisted=saveConfig(config);
+        return {config,warning:persisted ? 'Larger desk and removable work zone loaded. Your room and personal monitors are unchanged; the previous layout is backed up.' : 'Updated desk loaded. Export to save; browser storage is unavailable.'};
+      } catch {
+        return {config:original,warning:'The larger setup does not fit your saved furniture arrangement. Your room and existing layout were kept; adjust the desk before adding the work zone.'};
+      }
+    }
+    for (const key of ['roomwork.office.v3', 'roomwork.office.v2', LEGACY_STORAGE_KEY]) {
       const previous = localStorage.getItem(key);
       if (!previous) continue;
       const config = upgradeSavedLayout(JSON.parse(previous)), persisted = saveConfig(config);
@@ -112,6 +137,15 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
     }
     return { config: freshConfig() };
   } catch { return { config: freshConfig(), warning: 'The saved layout could not be loaded. Starting with the original layout.' }; }
+}
+
+/** Enlarge the desk, preserving the approved room and the personal workstation verbatim. */
+export function upgradeWorkLayout(input: unknown): PlannerConfig {
+  const config=validateConfig(input), desk=config.furniture.find(f=>f.kind==='desk' && f.cornerDesk);
+  if (!desk?.cornerDesk) fail('The larger work setup requires the corner desk.');
+  resizeCornerDesk(config,desk!,2.4,1.9);
+  if (!config.furniture.some(f=>f.kind==='work-zone')) config.furniture.push(...createWorkZone(desk!));
+  return validateConfig(config);
 }
 
 /** Automatic one-time correction. Preserve the room survey, finishes, door and unrelated objects. */

@@ -4,6 +4,7 @@ import { solid, type Materials } from '../materials';
 import { box } from '../room/geometry';
 import { furnitureFootprints, monitorPanel } from './footprint';
 import { createWallMonitorArm } from './wallMounts';
+import { createSharedDeskArm } from './deskArm';
 
 export type FurnitureObject = { config: FurnitureConfig; root: Mesh; meshes: Mesh[]; materials: StandardMaterial[] };
 
@@ -73,13 +74,14 @@ export function createFurniture(scene: Scene, configs: FurnitureConfig[], mats: 
           const panel = monitorPanel(config), bezel = config.monitor.bezel;
           const panelW = panel.width + 2 * bezel, panelH = panel.height + 2 * bezel;
           const wallMounted = config.monitor.mount === 'wall';
-          const centerY = wallMounted ? h / 2 : h - panelH / 2, screenZ = wallMounted ? 0 : -d * .18;
+          const panelMounted = wallMounted || config.monitor.mount === 'shared-arm';
+          const centerY = panelMounted ? h / 2 : h - panelH / 2, screenZ = panelMounted ? 0 : -d * .18;
           b('display shell', panelW, panelH, .035, 0, centerY, screenZ);
           const display = solid(scene, `${config.id} screen`, '#54716f', .15);
           display.emissiveColor = Color3.FromHexString('#789a98').scale(.18); object.materials.push(display);
           b('27 inch active panel', panel.width, panel.height, .002, 0, centerY, screenZ - .018, display);
-          if (wallMounted) {
-            if (room && config.monitor.wallMount) object.meshes.push(...createWallMonitorArm(scene, config, room, root, mats.dark));
+          if (panelMounted) {
+            if (wallMounted && room && config.monitor.wallMount) object.meshes.push(...createWallMonitorArm(scene, config, room, root, mats.dark));
             // Use a canvas label in the browser; NullEngine tests need no DOM or raster assets.
             if (scene.getEngine().getRenderingCanvas()) {
               const label = new DynamicTexture(`${config.id} brand label`, { width: 256, height: 32 }, scene, false);
@@ -107,6 +109,40 @@ export function createFurniture(scene: Scene, configs: FurnitureConfig[], mats: 
         const display = solid(scene, `${config.id} screen`, '#617f80', .2);
         display.emissiveColor = Color3.FromHexString('#789a98').scale(.23); object.materials.push(display);
         b('screen', w * .953, h * .69, .002, 0, h * .627, d * .069, display);
+        break;
+      }
+      case 'work-zone': {
+        // Its clamp/column/branches are built after all monitor roots have their real parents.
+        break;
+      }
+      case 'laptop': {
+        const tilt = ((config.laptop?.openingAngle ?? 105) - 90) * Math.PI / 180;
+        const thickness = Math.min(.014, h * .08), lidThickness = .008;
+        const cosine = Math.cos(tilt), sine = Math.sin(tilt);
+        const lidWidth = w * .95;
+        // Keep a plausible 16:9 display inside the complete open-laptop envelope.
+        const lidHeight = Math.min(lidWidth * 9 / 16 + .022,
+          (h - thickness - lidThickness) / Math.max(cosine, .1),
+          (d * .46 - lidThickness) / Math.max(sine, .0001));
+        const hingeZ = d / 2 - lidThickness - Math.max(0, lidHeight * sine);
+        const baseDepth = hingeZ + d / 2 + lidThickness / 2;
+        const baseZ = -d / 2 + baseDepth / 2;
+        b('laptop base', w, thickness, baseDepth, 0, thickness / 2, baseZ);
+        b('keyboard deck', w * .88, .002, baseDepth * .48, 0, thickness + .001, baseZ + baseDepth * .13, mats.dark);
+        for (let row = 0; row < 4; row++) for (let key = 0; key < 11; key++) {
+          b('keyboard key', w * .068, .0015, baseDepth * .082,
+            (key - 5) * w * .076, thickness + .0025, baseZ + baseDepth * .31 - row * baseDepth * .108, mats.metal);
+        }
+        b('touchpad', w * .27, .001, baseDepth * .20, 0, thickness + .001, baseZ - baseDepth * .28, mats.dark);
+        const lidY = thickness + lidHeight * cosine / 2, lidZ = hingeZ + lidHeight * sine / 2;
+        const lid = b('laptop screen shell', lidWidth, lidHeight, lidThickness, 0, lidY, lidZ);
+        lid.rotation.x = tilt;
+        const display = solid(scene, `${config.id} laptop display`, '#587373', .12);
+        display.emissiveColor = Color3.FromHexString('#789a98').scale(.18); object.materials.push(display);
+        const inset = lidThickness / 2 + .0008;
+        const screen = b('laptop active screen', lidWidth - .014, lidHeight - .017, .001,
+          0, lidY + sine * inset, lidZ - cosine * inset, display);
+        screen.rotation.x = tilt;
         break;
       }
       case 'storage': {
@@ -139,6 +175,11 @@ export function createFurniture(scene: Scene, configs: FurnitureConfig[], mats: 
   }
   for (const object of objects.values()) {
     if (object.config.parentId) object.root.parent = objects.get(object.config.parentId)!.root;
+  }
+  for (const object of objects.values()) {
+    if (object.config.kind !== 'work-zone' || !object.config.workZone) continue;
+    const monitors = [...objects.values()].filter(child => child.config.parentId === object.config.id && child.config.monitor?.mount === 'shared-arm');
+    object.meshes.push(...createSharedDeskArm(scene, object.config, object.root, monitors, mats.dark));
   }
   // Compute parents first so picking, dimensions, and gizmos have valid initial world matrices.
   for (const object of objects.values()) { object.root.computeWorldMatrix(true); for (const mesh of object.meshes) mesh.computeWorldMatrix(true); }

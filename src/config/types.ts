@@ -1,7 +1,7 @@
 export type Vec3 = { x: number; y: number; z: number };
 export type Dimensions = { width: number; height: number; depth: number };
 export type Wall = 'north' | 'south' | 'east' | 'west';
-export type FurnitureKind = 'desk' | 'chair' | 'pc' | 'monitor' | 'storage' | 'divider';
+export type FurnitureKind = 'desk' | 'chair' | 'pc' | 'monitor' | 'storage' | 'divider' | 'work-zone' | 'laptop';
 export type FurnitureConfig = {
   id: string;
   name: string;
@@ -12,9 +12,13 @@ export type FurnitureConfig = {
   color: string;
   visible: boolean;
   parentId?: string;
+  /** Preserve the attachment's offset from its parent desk top when desk height changes. */
+  onDesktop?: boolean;
   /** L footprint occupies local -X and -Z sides. Outer runs use width/depth. */
   cornerDesk?: { worktopDepth: number };
-  monitor?: { brand: string; diagonalInches: number; orientation: 'landscape' | 'portrait'; mount: 'arm' | 'stand' | 'wall'; bezel: number;
+  workZone?: { surfaceOffset: number; columnHeight: number; armReach: number };
+  laptop?: { openingAngle: number };
+  monitor?: { brand: string; diagonalInches: number; orientation: 'landscape' | 'portrait'; mount: 'arm' | 'stand' | 'wall' | 'shared-arm'; bezel: number;
     /** Wall attachment stays fixed when the monitor or desk moves. Coordinates in meters. */
     wallMount?: { wall: Wall; offset: number; height: number; maxReach: number };
   };

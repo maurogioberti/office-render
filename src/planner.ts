@@ -1,5 +1,5 @@
 import { BoundingInfo, Color3, Color4, Engine, GizmoManager, Mesh, MeshBuilder, PointerEventTypes, Scene, Vector3 } from '@babylonjs/core';
-import { freshConfig } from './config/office';
+import { createWorkZone, freshConfig } from './config/office';
 import { History, loadConfig, saveConfig, validateConfig } from './config/storage';
 import type { FurnitureConfig, Mode, PlannerConfig, TransformTool } from './config/types';
 import { createRoom, type RoomGeometry } from './room/geometry';
@@ -9,6 +9,8 @@ import { createMaterials, disposeMaterials, type Materials } from './materials';
 import { createLighting, aimDaylight } from './lighting';
 import { createBaseboardLighting } from './lighting/baseboards';
 import { placeScreenBehindChair } from './furniture/placement';
+import { removeFurnitureTree, resizeCornerDesk } from './furniture/deskLayout';
+import { worldTransform } from './navigation/collision';
 import { Navigation } from './navigation/cameras';
 import { createMeasurements } from './room/measurements';
 import { UI } from './ui/panel';
@@ -169,11 +171,15 @@ export class Planner {
     this.change(config => {
       const item = config.furniture.find(f=>f.id === this.selectedId); if(!item) return;
       if(group === 'dimensions' && ['width','depth','height'].includes(field)) {
-        const oldHeight = item.dimensions.height; item.dimensions[field as keyof FurnitureConfig['dimensions']] = value;
-        if (item.kind === 'desk' && field === 'height') config.furniture.filter(f=>f.parentId === item.id && f.kind === 'monitor').forEach(f=>{ f.position.y += value-oldHeight; });
+        const oldHeight = item.dimensions.height;
+        if (item.cornerDesk && (field==='width' || field==='depth')) resizeCornerDesk(config,item,field==='width'?value:item.dimensions.width,field==='depth'?value:item.dimensions.depth);
+        else item.dimensions[field as keyof FurnitureConfig['dimensions']] = value;
+        if (item.kind === 'desk' && field === 'height') config.furniture.filter(f=>f.parentId === item.id && (f.onDesktop || f.kind === 'monitor')).forEach(f=>{ f.position.y += value-oldHeight; });
       } else if(group === 'position' && ['x','y','z'].includes(field)) item.position[field as keyof FurnitureConfig['position']] = value;
       else if(group === 'cornerDesk' && field === 'worktopDepth' && item.cornerDesk) item.cornerDesk.worktopDepth = value;
       else if(group === 'wallMount' && ['offset','height','maxReach'].includes(field) && item.monitor?.wallMount) item.monitor.wallMount[field as 'offset' | 'height' | 'maxReach'] = value;
+      else if(group === 'workZone' && ['columnHeight','armReach'].includes(field) && item.workZone) item.workZone[field as 'columnHeight'|'armReach']=value;
+      else if(group === 'laptop' && field==='openingAngle' && item.laptop) item.laptop.openingAngle=value;
       else if(group === 'transform' && field === 'rotation') item.rotation = ((value % 360) + 360) % 360;
     });
   }
@@ -198,6 +204,27 @@ export class Planner {
     if(this.navigation.mode !== 'edit') return;
     const selected = this.selectedId ? this.furniture.get(this.selectedId) : undefined;
     switch(action) {
+      case 'toggle-work-zone': this.change(config=>{
+        const group=config.furniture.find(f=>f.kind==='work-zone');
+        if(group) removeFurnitureTree(config,group.id);
+        else {
+          const desk=config.furniture.find(f=>f.kind==='desk' && f.cornerDesk);
+          if(!desk) throw new Error('Add the work zone to an L-shaped desk.');
+          config.furniture.push(...createWorkZone(desk));
+        }
+      }); return;
+      case 'chair-work': case 'chair-personal': this.change(config=>{
+        const chair=config.furniture.find(f=>f.id==='chair'); if(!chair) return;
+        if(action==='chair-personal') {
+          const original=freshConfig().furniture.find(f=>f.id==='chair')!;
+          chair.position={...original.position};chair.rotation=original.rotation;
+        } else {
+          const group=config.furniture.find(f=>f.kind==='work-zone' && f.id===this.selectedId) ?? config.furniture.find(f=>f.kind==='work-zone'); if(!group) return;
+          const t=worldTransform(group,config.furniture),r=t.rotation*Math.PI/180;
+          chair.position={x:t.position.x-.09*Math.cos(r)-.83*Math.sin(r),y:0,z:t.position.z+.09*Math.sin(r)-.83*Math.cos(r)};
+          chair.rotation=t.rotation;
+        }
+      }); return;
       case 'move': case 'rotate': this.tool = action; this.updateSelection(); break;
       case 'grid': this.grid = !this.grid; break;
       case 'dimensions': this.dimensions = !this.dimensions; break;
@@ -213,7 +240,18 @@ export class Planner {
       }); return;
       case 'reset-object': this.change(config=>{
         const index = config.furniture.findIndex(f=>f.id === this.selectedId), original = freshConfig().furniture.find(f=>f.id === this.selectedId);
-        if(index>=0 && original) { const current = config.furniture[index]; config.furniture[index] = original; if(original.kind === 'desk') config.furniture.filter(f=>f.parentId === original.id && f.kind === 'monitor').forEach(f=>{ f.position.y += original.dimensions.height-current.dimensions.height; }); }
+        if(index>=0 && original) {
+          const current=config.furniture[index];
+          if(original.kind==='desk') {
+            if(current.cornerDesk) resizeCornerDesk(config,current,original.dimensions.width,original.dimensions.depth);
+            config.furniture.filter(f=>f.parentId===original.id && (f.onDesktop || f.kind==='monitor')).forEach(f=>{f.position.y+=original.dimensions.height-current.dimensions.height;});
+          }
+          if(original.onDesktop) {
+            const parent=config.furniture.find(f=>f.id===original.parentId);
+            if(parent) original.position=original.workZone ? createWorkZone(parent)[0].position : {...original.position,y:parent.dimensions.height};
+          }
+          config.furniture[index]=original;
+        }
       }); return;
       case 'undo': case 'redo': {
         const next = action === 'undo' ? this.history.undo(this.config) : this.history.redo(this.config);
