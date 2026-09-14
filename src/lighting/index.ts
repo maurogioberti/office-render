@@ -15,8 +15,11 @@ export function createLighting(scene: Scene) {
   const ambient = new HemisphericLight('Soft ambient daylight', new Vector3(0, 1, 0), scene);
   ambient.intensity = .82; ambient.diffuse = Color3.FromHexString('#fff8e9');
   ambient.groundColor = Color3.FromHexString('#aba793');
+  ambient.specular = Color3.Black();
   const sun = new DirectionalLight('Window daylight', new Vector3(-.65, -1, -.75), scene);
-  sun.position.set(3.5, 7, 5); sun.intensity = 1.15;
+  // StandardMaterial clamps diffuse light before tone mapping. Leave headroom above
+  // the ambient fill so the wall facing the window retains its plaster color/detail.
+  sun.position.set(3.5, 7, 5); sun.intensity = .35;
   sun.diffuse = Color3.FromHexString('#fff6e3');
   sun.shadowMinZ = .1; sun.shadowMaxZ = 18;
   sun.autoCalcShadowZBounds = true;

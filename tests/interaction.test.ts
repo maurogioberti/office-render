@@ -60,6 +60,8 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
     const navigation=(planner as any).navigation, scene=(planner as any).scene;
     scene.render();
     assert.equal(scene.activeCamera,navigation.walk);
+    assert.ok((planner as any).room.ceiling.isEnabled());
+    assert.ok((planner as any).lights.shadows.getShadowMap().renderList.includes((planner as any).room.ceiling),'The visible ceiling must block exterior sunlight in Walk mode');
     const beforeWalk=navigation.walk.position.x;
     Object.defineProperty(dom.document,'pointerLockElement',{configurable:true,value:dom.document.querySelector('#scene-canvas')});
     dom.document.dispatchEvent(new dom.Event('pointerlockchange'));
@@ -73,6 +75,7 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
     Object.defineProperty(dom.document,'pointerLockElement',{configurable:true,value:null});
     dom.document.dispatchEvent(new dom.Event('pointerlockchange'));
     button('[data-mode="edit"]'); assert.ok(!dom.document.querySelector('#app')!.classList.contains('walking'));
+    scene.render(); assert.equal((planner as any).room.ceiling.isEnabled(),false,'Edit cutaway must still hide the ceiling');
     button('[data-select="desk"]'); field('[data-group="dimensions"][data-field="height"]','0.80');
     assert.equal(saved().furniture.find((f:any)=>f.id==='monitor-left').position.y,1.12,'Desk height must not move wall-mounted displays');
     field('[data-group="position"][data-field="z"]','-0.30');

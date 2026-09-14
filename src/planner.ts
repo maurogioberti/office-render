@@ -105,7 +105,7 @@ export class Planner {
       o.root.setBoundingInfo(new BoundingInfo(new Vector3(-d.width/2,0,-d.depth/2),new Vector3(d.width/2,d.height,d.depth/2)));
     }
     this.lights.shadows.getShadowMap()!.renderList = [];
-    [...this.room.meshes, ...this.architecture, ...[...this.furniture.values()].flatMap(o=>o.meshes)].forEach(mesh => this.lights.shadows.addShadowCaster(mesh));
+    [...this.room.meshes, this.room.ceiling, ...this.architecture, ...[...this.furniture.values()].flatMap(o=>o.meshes)].forEach(mesh => this.lights.shadows.addShadowCaster(mesh));
     this.navigation.setConfig(this.config); this.updateSelection();
   }
   private destroyRoom() {
