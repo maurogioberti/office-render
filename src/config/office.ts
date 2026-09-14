@@ -36,6 +36,9 @@ export const OFFICE_CONFIG: PlannerConfig = {
       west: { color: '#eeeae0', texture: 'plaster', sheen: .06 },
     },
     baseboardLED: { enabled: true, color: '#ff3030', intensity: .18, glow: .3 },
+    // Classic through-wall box: to the right when facing the window from inside.
+    // 18 cm indoors + 12 cm wall + 30 cm outdoors; top is 21 cm below the soffit.
+    airConditioner: { enabled: true, wall: 'south', offset: -.30, bottom: 1.85, width: .66, height: .43, depth: .60, interiorProjection: .18, trimWidth: .025, color: '#d8d5c8', louverYaw: 15 },
     openings: [
       { id: 'window', kind: 'window', wall: 'south', offset: .7, width: .95, height: 1.35, sill: 1.12, confirmed: false,
         windowDetail: { frameColor: '#4c4636', frameWidth: .055, frameDepth: .10, housingHeight: .24, slatPitch: .035, shutterClosed: true } },

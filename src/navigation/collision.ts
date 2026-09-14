@@ -1,6 +1,7 @@
 import type { FurnitureConfig, PlannerConfig, RoomConfig, Vec3 } from '../config/types';
 import { furnitureFootprints } from '../furniture/footprint';
 import { wallMountFootprints } from '../furniture/wallMounts';
+import { airConditionerObstacle } from '../architecture/airConditionerLayout';
 
 export type Obstacle = { x: number; z: number; bottom: number; top: number; width: number; depth: number; rotation: number; id: string; support?: boolean };
 
@@ -27,6 +28,8 @@ export function obstacles(config: PlannerConfig): Obstacle[] {
     })) : [];
   });
   const room = config.room;
+  const ac=airConditionerObstacle(room);
+  if(ac) result.push(ac);
   for (const item of config.furniture) {
     if (item.monitor?.mount === 'wall' && item.monitor.wallMount && worldTransform(item,config.furniture).visible) result.push(...wallMountFootprints(item,room));
   }

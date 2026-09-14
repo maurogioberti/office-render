@@ -2,6 +2,7 @@ import { Mesh, Scene, TransformNode } from '@babylonjs/core';
 import type { RoomConfig } from '../config/types';
 import type { Materials } from '../materials';
 import { box, wallPoint, type RoomGeometry } from '../room/geometry';
+import { createAirConditioner } from './airConditioner';
 
 type SolidBounds = { minX: number; maxX: number; minY: number; maxY: number; minZ: number; maxZ: number };
 
@@ -106,5 +107,6 @@ export function createArchitecture(scene: Scene, room: RoomConfig, mats: Materia
     const z = (feature.corner.startsWith('north') ? 1 : -1) * (room.width / 2 - feature.depth / 2);
     meshes.push(box(scene, feature.id, feature.width, feature.height, feature.depth, x, feature.height / 2, z, mats.wall));
   }
+  meshes.push(...createAirConditioner(scene,room,mats,geometry));
   return meshes;
 }

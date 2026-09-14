@@ -6,9 +6,11 @@ import { resizeCornerDesk } from '../furniture/deskLayout';
 import { workZonePlacementIssue } from '../furniture/workZonePlacement';
 import { monitorMountGeometry, wallMountFootprints } from '../furniture/wallMounts';
 import { architectureConflict, itemFitsRoom, obstacles, rectanglesOverlap } from '../navigation/collision';
+import { airConditionerObstacle } from '../architecture/airConditionerLayout';
 
-// Layout revision 5 expands only furniture. The approved v4 room stays exactly as saved.
-export const STORAGE_KEY = 'roomwork.office.v5';
+// Revision 6 adds only the wall AC to the approved v5 scene; keep that save as a backup.
+export const STORAGE_KEY = 'roomwork.office.v6';
+export const AC_PREVIOUS_STORAGE_KEY = 'roomwork.office.v5';
 export const PREVIOUS_STORAGE_KEY = 'roomwork.office.v4';
 export const LEGACY_STORAGE_KEY = 'roomwork.office.v1';
 const WALLS = ['north', 'south', 'east', 'west'];
@@ -63,6 +65,20 @@ export function validateConfig(input: unknown): PlannerConfig {
     id(f.id);
     if (!['north-west','north-east','south-west','south-east'].includes(f.corner) || typeof f.enabled !== 'boolean' || !finite(f.width, .01, room.length) || !finite(f.depth, .01, room.width) || !finite(f.height, .01, 8) || (f.enabled && f.height > room.height)) fail('A corner feature has invalid dimensions.');
   }
+  const ac=room.airConditioner;
+  if(ac!==undefined) {
+    if(!ac || typeof ac.enabled!=='boolean' || !WALLS.includes(ac.wall) || !finite(ac.offset,-15,15) || !finite(ac.bottom,0,8)
+      || !finite(ac.width,.3,1.5) || !finite(ac.height,.3,1) || !finite(ac.depth,.3,1.2) || !finite(ac.interiorProjection,.06,.35)
+      || !finite(ac.trimWidth,.01,.06) || !/^#[0-9a-f]{6}$/i.test(ac.color) || !finite(ac.louverYaw,-30,30)) fail('Air conditioner dimensions, finish, or outlet angle are invalid.');
+    id('wall-ac');
+    if(ac.enabled) {
+      const span=ac.wall==='north' || ac.wall==='south'?room.length:room.width;
+      if(Math.abs(ac.offset)+ac.width/2+ac.trimWidth>span/2 || ac.bottom<ac.trimWidth || ac.bottom+ac.height+ac.trimWidth>room.height) fail('The air conditioner and its trim must fit within the wall.');
+      if(ac.depth-ac.interiorProjection-room.wallThickness<.08) fail('The through-wall air conditioner needs a rear casing extending outside the wall. Increase total depth or reduce interior projection.');
+      if(room.openings.some(o=>o.wall===ac.wall && Math.abs(o.offset-ac.offset)<(o.width+ac.width)/2+ac.trimWidth+.04
+        && o.sill+o.height>ac.bottom-ac.trimWidth && o.sill<ac.bottom+ac.height+ac.trimWidth)) fail('Keep the air conditioner and trim clear of the existing window and door.');
+    }
+  }
   if (config.furniture.length > 100) fail('Layouts support up to 100 furniture objects.');
   for (const item of config.furniture) {
     id(item.id);
@@ -111,6 +127,8 @@ export function validateConfig(input: unknown): PlannerConfig {
     if (architectureConflict(item,config)) fail(`${item.name} would intersect the corner step or soffit. Adjust its position or dimensions first.`);
     if (item.workZone) { const issue=workZonePlacementIssue(item,config); if(issue) fail(issue); }
   }
+  const acSolid=airConditionerObstacle(room,true);
+  if(acSolid && obstacles(config).some(o=>o.id!=='wall-ac' && rectanglesOverlap(acSolid,o))) fail('The air conditioner or its trim intersects existing furniture, a soffit, or a corner step. Adjust the AC placement.');
   // Return a detached plain-data copy, never the caller's mutable object.
   return structuredClone(config);
 }
@@ -119,11 +137,21 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) return { config: validateConfig(JSON.parse(saved)) };
+    const previousAC=localStorage.getItem(AC_PREVIOUS_STORAGE_KEY);
+    if(previousAC) {
+      const original=validateConfig(JSON.parse(previousAC));
+      try {
+        const config=upgradeAirConditionerLayout(original),persisted=saveConfig(config);
+        return {config,warning:persisted ? 'Through-wall AC added. Your room layout is unchanged and the previous scene remains backed up.' : 'AC loaded. Export to save; browser storage is unavailable.'};
+      } catch {
+        return {config:original,warning:'The AC does not fit the saved wall arrangement. Your existing scene was kept unchanged.'};
+      }
+    }
     const previous=localStorage.getItem(PREVIOUS_STORAGE_KEY);
     if (previous) {
       const original=validateConfig(JSON.parse(previous));
       try {
-        const config=upgradeWorkLayout(original), persisted=saveConfig(config);
+        const config=upgradeAirConditionerLayout(upgradeWorkLayout(original)), persisted=saveConfig(config);
         return {config,warning:persisted ? 'Larger desk and removable work zone loaded. Your room and personal monitors are unchanged; the previous layout is backed up.' : 'Updated desk loaded. Export to save; browser storage is unavailable.'};
       } catch {
         return {config:original,warning:'The larger setup does not fit your saved furniture arrangement. Your room and existing layout were kept; adjust the desk before adding the work zone.'};
@@ -132,11 +160,25 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
     for (const key of ['roomwork.office.v3', 'roomwork.office.v2', LEGACY_STORAGE_KEY]) {
       const previous = localStorage.getItem(key);
       if (!previous) continue;
-      const config = upgradeSavedLayout(JSON.parse(previous)), persisted = saveConfig(config);
+      const config = upgradeAirConditionerLayout(upgradeSavedLayout(JSON.parse(previous))), persisted = saveConfig(config);
       return { config, warning: persisted ? 'Photo-based room correction loaded. Your previous layout remains backed up on this device.' : 'Updated layout loaded. Export it to save; browser storage is unavailable.' };
     }
     return { config: freshConfig() };
   } catch { return { config: freshConfig(), warning: 'The saved layout could not be loaded. Starting with the original layout.' }; }
+}
+
+/** Add only the new fixture. Explicit imports remain untouched by this browser-save upgrade. */
+export function upgradeAirConditionerLayout(input: unknown): PlannerConfig {
+  const config=validateConfig(input);
+  if(config.room.airConditioner!==undefined) return config;
+  const window=config.room.openings.find(o=>o.kind==='window')!,ac=structuredClone(freshConfig().room.airConditioner!);
+  ac.wall=window.wall;
+  const right={north:1,south:-1,east:-1,west:1}[window.wall];
+  ac.offset=+(window.offset+right*(window.width/2+.195+ac.width/2)).toFixed(6);
+  const underside=Math.min(config.room.height,...config.room.beams.filter(b=>b.enabled && b.wall===ac.wall && Math.abs(b.offset-ac.offset)<(b.length+ac.width)/2).map(b=>config.room.height-b.drop));
+  ac.bottom=+(underside-.21-ac.height).toFixed(6);
+  config.room.airConditioner=ac;
+  return validateConfig(config);
 }
 
 /** Enlarge the desk, preserving the approved room and the personal workstation verbatim. */

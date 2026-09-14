@@ -1,6 +1,7 @@
 import { Mesh, MeshBuilder, Scene, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
 import type { RoomConfig, Wall } from '../config/types';
 import type { Materials } from '../materials';
+import { airConditionerOpening } from '../architecture/airConditionerLayout';
 
 export function box(scene: Scene, name: string, width: number, height: number, depth: number, x: number, y: number, z: number, material: StandardMaterial, parent?: TransformNode) {
   const mesh = MeshBuilder.CreateBox(name, { width, height, depth }, scene);
@@ -28,7 +29,8 @@ export function createRoom(scene: Scene, room: RoomConfig, mats: Materials) {
     const group = new TransformNode(`Wall · ${wall}`, scene); groups[wall] = group;
     const long = wall === 'north' || wall === 'south';
     const span = long ? room.length : room.width;
-    const openings = room.openings.filter(o => o.wall === wall);
+    const fixtureOpening=airConditionerOpening(room);
+    const openings = [...room.openings,...(fixtureOpening?[fixtureOpening]:[])].filter(o => o.wall === wall);
     const xs = [...new Set([-span / 2, span / 2, ...openings.flatMap(o => [o.offset - o.width / 2, o.offset + o.width / 2])])].sort((a, b) => a - b);
     const ys = [...new Set([0, room.height, ...openings.flatMap(o => [o.sill, o.sill + o.height])])].sort((a, b) => a - b);
     for (let i = 0; i < xs.length - 1; i++) for (let j = 0; j < ys.length - 1; j++) {

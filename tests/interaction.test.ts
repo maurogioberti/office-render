@@ -33,7 +33,7 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
   const field=(selector:string,value:string)=>{
     const input=dom.document.querySelector(selector) as any; assert.ok(input,selector); input.value=value; input.dispatchEvent(new dom.Event('change',{bubbles:true}));
   };
-  const saved=()=>JSON.parse(dom.localStorage.getItem('roomwork.office.v5')!) as ReturnType<typeof freshConfig>;
+  const saved=()=>JSON.parse(dom.localStorage.getItem('roomwork.office.v6')!) as ReturnType<typeof freshConfig>;
   try {
     assert.equal(dom.localStorage.getItem('roomwork.office.v4'),legacyJSON,'Original browser save remains intact');
     assert.deepEqual(saved().room,legacy.room,'The approved room is preserved exactly');
@@ -100,6 +100,9 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
     (form.querySelector('[name="opening.0.detail.frameColor"]') as any).value='#625347';
     (form.querySelector('[name="opening.0.detail.housingHeight"]') as any).value='0.25';
     (form.querySelector('[name="opening.0.detail.slatPitch"]') as any).value='0.04';
+    (form.querySelector('[name="ac.color"]') as any).value='#d6d2c4';
+    (form.querySelector('[name="ac.louverYaw"]') as any).value='12';
+    const cameraBefore={alpha:navigation.edit.alpha,beta:navigation.edit.beta,radius:navigation.edit.radius,target:navigation.edit.target.clone()};
     form.dispatchEvent(new dom.Event('submit',{bubbles:true,cancelable:true}));
     assert.equal(dom.document.querySelector('#settings-error')!.textContent,'','Room settings should apply without errors');
     assert.equal(saved().room.height,2.7); assert.equal(saved().room.beams[0].enabled,true);
@@ -109,6 +112,9 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
     assert.equal(saved().room.openings[0].windowDetail.housingHeight,.25);
     assert.equal(saved().room.openings[0].windowDetail.slatPitch,.04);
     assert.equal((planner as any).materials.windowFrames.window.diffuseColor.toHexString(),'#625347');
+    assert.equal(saved().room.airConditioner!.color,'#d6d2c4');assert.equal(saved().room.airConditioner!.louverYaw,12);
+    assert.equal(saved().room.airConditioner!.trimWidth,.025,'Editing the AC preserves its configured fitting trim');
+    assert.deepEqual({alpha:navigation.edit.alpha,beta:navigation.edit.beta,radius:navigation.edit.radius,target:navigation.edit.target},cameraBefore,'Room/AC rebuild keeps the viewing angle');
     button('[data-action="undo"]'); assert.equal(saved().room.baseboardLED.color,'#ff3030');
     button('[data-action="redo"]'); assert.equal(saved().room.baseboardLED.color,'#44aaff');
     button('[data-select="desk"]');

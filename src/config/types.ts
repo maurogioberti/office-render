@@ -35,6 +35,22 @@ export type OpeningConfig = {
   /** Overall opening height includes the housing. Photographic proportions, not a surveyed product. */
   windowDetail?: { frameColor: string; frameWidth: number; frameDepth: number; housingHeight: number; slatPitch: number; shutterClosed: boolean };
 };
+export type AirConditionerConfig = {
+  enabled: boolean;
+  wall: Wall;
+  /** Center along the wall, and casing bottom above the floor, in meters. */
+  offset: number;
+  bottom: number;
+  width: number;
+  height: number;
+  /** Full casing depth = interior projection + wall thickness + exterior projection. */
+  depth: number;
+  interiorProjection: number;
+  trimWidth: number;
+  color: string;
+  /** Outlet vanes turn around local Y; the casing remains square to the wall. */
+  louverYaw: number;
+};
 export type RoomConfig = {
   length: number;
   width: number;
@@ -43,6 +59,7 @@ export type RoomConfig = {
   wallThickness: number;
   wallFinishes: Record<Wall, { color: string; texture: 'plaster' | 'plain'; sheen: number }>;
   baseboardLED: { enabled: boolean; color: string; intensity: number; glow: number };
+  airConditioner?: AirConditionerConfig;
   openings: OpeningConfig[];
   beams: { id: string; enabled: boolean; wall: Wall; offset: number; length: number; projection: number; drop: number }[];
   cornerFeatures: { id: string; enabled: boolean; corner: 'north-west' | 'north-east' | 'south-west' | 'south-east'; width: number; depth: number; height: number }[];
