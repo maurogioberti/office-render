@@ -10,7 +10,7 @@ const previous=()=>JSON.parse(readFileSync(new URL('./fixtures/layout-v12.json',
 const personal=['monitor-portrait','monitor-left','monitor-center','monitor-right'];
 
 test('AC-return correction changes only personal poses and wall anchor locations',()=>{
-  const before=previous(),after=freshConfig();
+  const before=previous(),after=relocatePersonalWorkstation(before);
   assert.deepEqual(after.room,before.room);
   assert.equal(after.furniture.length,before.furniture.length);
   for(const old of before.furniture) {

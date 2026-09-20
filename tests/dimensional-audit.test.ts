@@ -22,8 +22,9 @@ test('real-size audit preserves the exact desk and architecture and measures sup
   assert.ok(report.main.projectedSpan<2.50);
   assert.ok(report.main.rightClearance>.50);
   assert.ok(Math.abs(report.main.returnTipClearance-.075)<.000001);
-  assert.equal(report.work.span,1.249);
-  assert.ok(report.laptop.clearCorner.width>.51 && report.laptop.clearCorner.depth>.50);
+  assert.ok(report.work.joined);
+  assert.ok(report.work.span>1.19 && report.work.span<1.20);
+  assert.ok(report.laptop.clearCorner.width>.45 && report.laptop.clearCorner.depth>.50);
   assert.ok(report.tower.position.z<-.7,'Tower stays under the left/south return');
   assert.ok(report.tower.ventilation.rear>=.10 && report.tower.ventilation.frontToChair>=.30);
   assert.ok(report.tower.ventilation.topToNearestSupport>.219);
@@ -33,9 +34,10 @@ test('real-size audit preserves the exact desk and architecture and measures sup
 test('audit refuses undersized screens and a laptop placed below an arm instead of forcing a fit',()=>{
   const resized=freshConfig();resized.furniture.find(f=>f.id==='work-monitor-left')!.dimensions.width=.610;
   assert.throws(()=>auditWorkstation(resized));
-  const obstructed=freshConfig();obstructed.furniture.find(f=>f.id==='work-laptop')!.position.z+=.06;
+  const historical=()=>JSON.parse(readFileSync(new URL('./fixtures/layout-v13.json',import.meta.url),'utf8')) as ReturnType<typeof freshConfig>;
+  const obstructed=historical();obstructed.furniture.find(f=>f.id==='work-laptop')!.position.z+=.06;
   assert.throws(()=>auditWorkstation(obstructed),/Laptop lies beneath|No usable laptop corner/);
-  const postCollision=freshConfig();
+  const postCollision=historical();
   for(const item of postCollision.furniture.filter(f=>f.monitor?.mount==='shared-arm')) item.position.z+=.02;
   assert.throws(()=>auditWorkstation(postCollision),/common monitor column.*intersects/);
 });

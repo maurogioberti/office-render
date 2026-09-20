@@ -8,8 +8,9 @@ import { monitorMountGeometry, wallMountFootprints } from '../furniture/wallMoun
 import { architectureConflict, itemFitsRoom, obstacles, rectanglesOverlap } from '../navigation/collision';
 import { airConditionerObstacle } from '../architecture/airConditionerLayout';
 
-// Revision 13 relocates only the personal screens and their wall anchors to the AC-side return.
-export const STORAGE_KEY = 'roomwork.office.v13';
+// Revision 14 joins only the work pair to the horizontal row and moves the laptop right.
+export const STORAGE_KEY = 'roomwork.office.v14';
+export const WORK_ROW_PREVIOUS_STORAGE_KEY = 'roomwork.office.v13';
 export const POSITION_PREVIOUS_STORAGE_KEY = 'roomwork.office.v12';
 export const AUDIT_PREVIOUS_STORAGE_KEY = 'roomwork.office.v11';
 export const PANORAMA_PREVIOUS_STORAGE_KEY = 'roomwork.office.v10';
@@ -166,6 +167,16 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
       }
       return { config: validateConfig(input) };
     }
+    const previousRow=localStorage.getItem(WORK_ROW_PREVIOUS_STORAGE_KEY);
+    if(previousRow) {
+      const original=validateConfig(JSON.parse(previousRow));
+      try {
+        const config=joinWorkMonitorRow(original),persisted=saveConfig(config);
+        return {config,warning:persisted?'Work monitors joined to the horizontal row; laptop moved to the right return. Previous layout backed up.':'Work monitor row updated. Export to save; browser storage is unavailable.'};
+      } catch(error) {
+        return {config:original,warning:`Work monitor correction cannot fit this saved layout: ${(error as Error).message} Your existing scene was kept unchanged.`};
+      }
+    }
     const previousPosition=localStorage.getItem(POSITION_PREVIOUS_STORAGE_KEY);
     if(previousPosition) {
       const original=validateConfig(JSON.parse(previousPosition));
@@ -234,6 +245,24 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
     }
     return { config: freshConfig() };
   } catch { return { config: freshConfig(), warning: 'The saved layout could not be loaded. Starting with the original layout.' }; }
+}
+
+/** Change only the two work screens, their existing desk support position, and laptop pose. */
+export function joinWorkMonitorRow(input: unknown): PlannerConfig {
+  const config=validateConfig(input),reference=freshConfig();
+  for(const id of ['desk','monitor-portrait','monitor-left','monitor-center','monitor-right']) {
+    const current=config.furniture.find(f=>f.id===id),source=reference.furniture.find(f=>f.id===id)!;
+    for(const key of ['dimensions','position','rotation','cornerDesk'] as const) {
+      if(JSON.stringify(current?.[key])!==JSON.stringify(source[key])) fail(`${id} differs from the validated row reference; it was not moved.`);
+    }
+  }
+  for(const id of ['work-zone','work-monitor-left','work-monitor-right','work-laptop']) {
+    const item=config.furniture.find(f=>f.id===id),source=reference.furniture.find(f=>f.id===id)!;
+    if(!item || item.parentId!==source.parentId || JSON.stringify(item.dimensions)!==JSON.stringify(source.dimensions)
+      || item.monitor?.mount!==source.monitor?.mount || JSON.stringify(item.workZone)!==JSON.stringify(source.workZone)) fail(`The existing support or dimensions for ${id} differ from the reference.`);
+    item!.position={...source.position};item!.rotation=source.rotation;
+  }
+  return validateConfig(config);
 }
 
 /** Position-only correction: relocate four screens and their anchors, never their dimensions. */

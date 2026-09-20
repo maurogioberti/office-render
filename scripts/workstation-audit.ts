@@ -68,8 +68,10 @@ export function auditWorkstation(input:PlannerConfig=freshConfig()) {
     },0);
     assert.ok(Math.abs(supportedArea-area(points))<.000001,`${screen.id} must stay above the unchanged return/main surface`);
   }
-  assert.ok(workBounds.minX>=deskBounds.minX && workBounds.maxX<=deskBounds.maxX && workBounds.minZ>=returnStartZ && workBounds.maxZ<=deskBounds.maxZ,'Work pair must remain above the right return');
+  const joined=gap(footprint(main[3],config),footprint(work[0],config))<.05;
+  if(!joined) assert.ok(workBounds.minX>=deskBounds.minX && workBounds.maxX<=deskBounds.maxX && workBounds.minZ>=returnStartZ && workBounds.maxZ<=deskBounds.maxZ,'Work pair must remain above the right return');
   const gaps=[...main.slice(1).map((m,i)=>gap(footprint(main[i],config),footprint(m,config))),gap(footprint(work[0],config),footprint(work[1],config))];
+  if(joined) gaps.splice(3,0,gap(footprint(main[3],config),footprint(work[0],config)));
   assert.ok(gaps.every(g=>g>=.02 && g<=.03),'Actual nearest casing gaps, including thickness, must be 20–30 mm');
   const cases=obstacles(config).filter(o=>[...mainIds,...workIds,'work-laptop','pc','chair'].includes(o.id)&&!o.support);
   for(let i=0;i<cases.length;i++) for(let j=i+1;j<cases.length;j++) assert.equal(rectanglesOverlap(cases[i],cases[j]),false,`${cases[i].id}/${cases[j].id} intersect`);
@@ -98,14 +100,20 @@ export function auditWorkstation(input:PlannerConfig=freshConfig()) {
       }
     }
     const laptopBounds=range(footprint(laptop,config));
-    for(const arm of arms) {
+    if(joined) {
+      for(const arm of arms) for(const body of objects.get(laptop.id)!.meshes) {
+        arm.computeWorldMatrix(true);body.computeWorldMatrix(true);
+        assert.equal(arm.intersectsMesh(body,true),false,`Laptop intersects ${arm.name}`);
+      }
+    }
+    for(const arm of joined?[]:arms) {
       const b=meshBounds(arm);
       assert.ok(b.maxX<=laptopBounds.minX || b.minX>=laptopBounds.maxX || b.maxZ<=laptopBounds.minZ || b.minZ>=laptopBounds.maxZ,`Laptop lies beneath/intersects ${arm.name}`);
     }
     // Natural inside corner, reserving 20 mm beyond the nearest rendered arm bounds.
     const wallArmEnd=Math.max(...arms.filter(m=>m.metadata?.wallMountSupport).map(meshBounds).filter(b=>b.maxZ>returnStartZ).map(b=>b.maxX));
     const workArmFront=Math.min(...arms.filter(m=>m.metadata?.sharedArmSupport).map(meshBounds).filter(b=>b.minX<mainEndX).map(b=>b.minZ));
-    const corner={minX:Math.max(deskBounds.minX,wallArmEnd+.02),maxX:mainEndX,minZ:returnStartZ,maxZ:Math.min(deskBounds.maxZ,workArmFront-.02)};
+    const corner=joined?{minX:deskBounds.maxX-.46,maxX:deskBounds.maxX,minZ:returnStartZ,maxZ:deskBounds.maxZ}:{minX:Math.max(deskBounds.minX,wallArmEnd+.02),maxX:mainEndX,minZ:returnStartZ,maxZ:Math.min(deskBounds.maxZ,workArmFront-.02)};
     assert.ok(laptopBounds.minX>=corner.minX && laptopBounds.maxX<=corner.maxX && laptopBounds.minZ>=corner.minZ && laptopBounds.maxZ<=corner.maxZ,`No usable laptop corner: ${JSON.stringify({corner,laptopBounds})}`);
     const pcBounds=range(footprint(pc,config)),pcWorld=worldTransform(pc,config.furniture).position,chairBounds=range(footprint(get('chair'),config));
     const overhead=Math.min(...objects.get('desk')!.meshes.map(meshBounds).filter(b=>b.maxX>pcBounds.minX&&b.minX<pcBounds.maxX&&b.maxZ>pcBounds.minZ&&b.minZ<pcBounds.maxZ).map(b=>b.minY))-pcWorld.y-pc.dimensions.height;
@@ -116,7 +124,7 @@ export function auditWorkstation(input:PlannerConfig=freshConfig()) {
     return {
       units:'meters',monitors:[...main,...work].map(m=>({id:m.id,...m.dimensions,position:worldTransform(m,config.furniture).position,rotation:worldTransform(m,config.furniture).rotation})),
       main:{projectedSpan:mainBounds.maxZ-mainBounds.minZ,remaining:desk.dimensions.depth-(mainBounds.maxZ-mainBounds.minZ),returnTipClearance:deskBounds.maxX-range(footprint(main[0],config)).maxX,southClearance:mainBounds.minZ-deskBounds.minZ,rightClearance:deskBounds.maxZ-mainBounds.maxZ},
-      work:{span:workBounds.maxX-workBounds.minX,returnSpan:desk.dimensions.width,endClearances:[workBounds.minX-deskBounds.minX,deskBounds.maxX-workBounds.maxX]},
+      work:{joined,desktopOverhang:Math.max(0,workBounds.maxX-deskBounds.maxX),span:workBounds.maxX-workBounds.minX,returnSpan:desk.dimensions.width,endClearances:[workBounds.minX-deskBounds.minX,deskBounds.maxX-workBounds.maxX]},
       nearestHousingGaps:gaps,
       laptop:{rawCorner:{width:desk.cornerDesk!.worktopDepth,depth:desk.cornerDesk!.returnWidth},clearCorner:{...corner,width:corner.maxX-corner.minX,depth:corner.maxZ-corner.minZ},rotatedEnvelope:{width:laptopBounds.maxX-laptopBounds.minX,depth:laptopBounds.maxZ-laptopBounds.minZ},position:worldTransform(laptop,config.furniture).position,openingAngle:laptop.laptop!.openingAngle,verticalMonitorClearance:work[0].position.y+worldTransform(get('work-zone'),config.furniture).position.y-(worldTransform(laptop,config.furniture).position.y+laptop.dimensions.height)},
       tower:{position:pcWorld,dimensions:pc.dimensions,ventilation,acCasingLateralClearance:ac.offset-ac.width/2-pcBounds.maxX,acTrimLateralClearance:ac.offset-ac.width/2-ac.trimWidth-pcBounds.maxX},

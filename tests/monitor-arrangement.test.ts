@@ -27,7 +27,7 @@ test('comparison viewpoint shows portrait first, three landscapes, then the join
     const lp=worldTransform(laptop,config.furniture).position;
     const positions=work.map(f=>worldTransform(f,config.furniture).position);
     assert.ok(positions.every(p=>p.z>Math.max(...personal.map(f=>f.position.z))),'Work screens continue beyond the main four');
-    assert.ok(lp.z>0 && lp.x<-1.1,'Laptop occupies the existing inside corner');
+    assert.ok(lp.z>.9 && lp.x>-.85 && lp.x<-.55,'Laptop occupies the far-right return');
     assert.ok(positions.every(p=>p.y>lp.y+laptop.dimensions.height),'Open laptop does not cover either work screen');
     assert.equal(config.furniture.filter(f=>f.kind==='monitor').length,6);
     assert.equal(config.furniture.filter(f=>f.kind==='laptop').length,1);

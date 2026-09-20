@@ -20,16 +20,14 @@ test('full-size displays retain aligned centers and separate four-plus-two sourc
     const screen=screens[i],t=worldTransform(screen,config.furniture);
     assert.ok(Math.abs(t.position.y+screen.dimensions.height/2-1.295)<.0001,'Screen centers align, including the portrait');
     assert.equal(screen.monitor!.sourceId,i<4?'pc':'work-laptop');
-    if(i===0 || i===4) continue;
+    if(i===0) continue;
     const a=edge(i-1,1),b=edge(i,-1);
-    assert.ok(Math.abs(Math.hypot(a.x-b.x,a.z-b.z)-(i<4?.04:.025))<.001,`Gap ${i}/${i+1} preserves edge-center separation (nearest casing gaps verified by the geometry audit)`);
+    assert.ok(Math.abs(Math.hypot(a.x-b.x,a.z-b.z)-.04)<.001,`Gap ${i}/${i+1} preserves edge-center separation (nearest casing gaps verified by the geometry audit)`);
   }
   for(let i=0;i<bodies.length;i++) for(let j=i+1;j<bodies.length;j++) assert.equal(rectanglesOverlap(bodies[i],bodies[j]),false,'No case overlap');
   const laptop=config.furniture.find(f=>f.id==='work-laptop')!,chair=config.furniture.find(f=>f.id==='chair')!;
-  const p=worldTransform(laptop,config.furniture),joinA=edge(3,1),joinB=edge(4,-1);
-  const join={x:(joinA.x+joinB.x)/2,z:(joinA.z+joinB.z)/2};
-  assert.ok(Math.hypot(p.position.x-join.x,p.position.z-join.z)<.45,'Laptop stays in the inside corner below the transition');
-  assert.ok((p.position.x-join.x)*(chair.position.x-join.x)+(p.position.z-join.z)*(chair.position.z-join.z)>0,'Laptop sits forward of the upper row');
+  const p=worldTransform(laptop,config.furniture);
+  assert.ok(laptop.position.x>.4 && laptop.position.z>.9,'Laptop occupies the far-right desktop return');
   const chairYaw=Math.atan2(p.position.x-chair.position.x,p.position.z-chair.position.z)*180/Math.PI;
   assert.ok(Math.abs(p.rotation-chairYaw)<10,'Keyboard and webcam face the fixed chair');
   assert.equal(desktopItemPlacementIssue(laptop,config),undefined);
