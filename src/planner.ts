@@ -225,6 +225,10 @@ export class Planner {
           config.furniture.push(...createWorkZone(desk));
         }
       }); return;
+      case 'toggle-work-power': this.change(config=>{
+        const laptop=config.furniture.find(f=>f.id==='work-laptop');
+        if(laptop?.laptop) laptop.laptop.poweredOn=laptop.laptop.poweredOn===false;
+      }); return;
       case 'chair-work': case 'chair-personal': this.change(config=>{
         const chair=config.furniture.find(f=>f.id==='chair'); if(!chair) return;
         if(action==='chair-personal') {

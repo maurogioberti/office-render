@@ -17,8 +17,8 @@ export type FurnitureConfig = {
   /** Legacy L or squared C, backed by local -X. Width/depth define the outer envelope. */
   cornerDesk?: { shape?: 'l' | 'rect-c'; returnWidth?: number; floating?: boolean; worktopDepth: number; mainRun?: 'width' | 'depth'; cornerNotch?: { width: number; depth: number } };
   workZone?: { surfaceOffset: number; columnHeight: number; armReach: number };
-  laptop?: { openingAngle: number };
-  monitor?: { brand: string; diagonalInches: number; orientation: 'landscape' | 'portrait'; mount: 'arm' | 'stand' | 'wall' | 'shared-arm'; bezel: number;
+  laptop?: { openingAngle: number; poweredOn?: boolean };
+  monitor?: { sourceId?: string; brand: string; diagonalInches: number; orientation: 'landscape' | 'portrait'; mount: 'arm' | 'stand' | 'wall' | 'shared-arm'; bezel: number;
     /** Wall attachment stays fixed when the monitor or desk moves. Coordinates in meters. */
     wallMount?: { wall: Wall; offset: number; height: number; maxReach: number };
   };

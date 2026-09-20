@@ -60,7 +60,7 @@ test('work-zone support and display separation reject floating clamps, excessive
   invalid(c=>{c.furniture.find(f=>f.id==='work-zone')!.position.z-=.10;},/clamp at a desk edge/);
   invalid(c=>{c.furniture.find(f=>f.id==='work-zone')!.workZone!.armReach=.2;},/shared arm reach/);
   invalid(c=>{c.furniture.find(f=>f.id==='work-monitor-right')!.position.x=.29;},/would intersect/);
-  invalid(c=>{c.furniture.find(f=>f.id==='work-laptop')!.position.z-=.5;},/laptop must fit/i);
+  invalid(c=>{c.furniture.find(f=>f.id==='work-laptop')!.position.x+=.2;},/laptop must fit/i);
 });
 
 test('saved-layout upgrade falls back to the original scene if its corner feature needs a different cutout', () => {

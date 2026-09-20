@@ -1,15 +1,16 @@
 import { freshConfig } from './office';
 import type { PlannerConfig } from './types';
 import { monitorPanel } from '../furniture/footprint';
-import { createWorkZone } from './office';
+import { createWorkZone, workLaptopPosition } from './office';
 import { resizeCornerDesk } from '../furniture/deskLayout';
 import { desktopItemPlacementIssue, workZonePlacementIssue } from '../furniture/workZonePlacement';
 import { monitorMountGeometry, wallMountFootprints } from '../furniture/wallMounts';
 import { architectureConflict, itemFitsRoom, obstacles, rectanglesOverlap } from '../navigation/collision';
 import { airConditionerObstacle } from '../architecture/airConditionerLayout';
 
-// Revision 10 tightens the monitor arc; only displays, arms and laptop are repositioned.
-export const STORAGE_KEY = 'roomwork.office.v10';
+// Revision 11 joins both display groups into a continuous arc with linked work power.
+export const STORAGE_KEY = 'roomwork.office.v11';
+export const PANORAMA_PREVIOUS_STORAGE_KEY = 'roomwork.office.v10';
 export const SPACING_PREVIOUS_STORAGE_KEY = 'roomwork.office.v9';
 export const MONITOR_PREVIOUS_STORAGE_KEY = 'roomwork.office.v8';
 export const CORRECTION_PREVIOUS_STORAGE_KEY = 'roomwork.office.v7';
@@ -103,6 +104,8 @@ export function validateConfig(input: unknown): PlannerConfig {
       if (item.kind!=='work-zone' || !item.onDesktop || !s || !finite(s.surfaceOffset,.025,.1) || !finite(s.columnHeight,.15,.8) || !finite(s.armReach,.15,1) || item.dimensions.depth<.2 || item.dimensions.width<.15 || item.dimensions.height<s.surfaceOffset+s.columnHeight+.03) fail('The work zone needs a valid desktop clamp, column, and arm reach.');
       if (config.furniture.filter(f=>f.parentId===item.id && f.kind==='monitor').length>2) fail('The shared dual arm supports at most two monitors.');
     }
+    if (item.laptop?.poweredOn!==undefined && typeof item.laptop.poweredOn!=='boolean') fail('Laptop power must be on or off.');
+    if (item.monitor?.sourceId!==undefined && !config.furniture.some(f=>f.id===item.monitor!.sourceId && (f.kind==='pc' || f.kind==='laptop'))) fail('Monitor source must identify a PC or laptop.');
     if (item.kind==='laptop' || item.laptop) {
       if (item.kind!=='laptop' || !item.laptop || !finite(item.laptop.openingAngle,85,120) || item.dimensions.width<.2 || item.dimensions.depth<.15 || item.dimensions.height<.12) fail('The laptop needs a supported envelope and opening angle between 85 and 120 degrees.');
     }
@@ -159,12 +162,12 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
       }
       return { config: validateConfig(input) };
     }
-    const previousMonitors=localStorage.getItem(SPACING_PREVIOUS_STORAGE_KEY) ?? localStorage.getItem(MONITOR_PREVIOUS_STORAGE_KEY);
+    const previousMonitors=localStorage.getItem(PANORAMA_PREVIOUS_STORAGE_KEY) ?? localStorage.getItem(SPACING_PREVIOUS_STORAGE_KEY) ?? localStorage.getItem(MONITOR_PREVIOUS_STORAGE_KEY);
     if(previousMonitors) {
       const original=validateConfig(JSON.parse(previousMonitors));
       try {
         const config=alignWorkstations(original),persisted=saveConfig(config);
-        return {config,warning:persisted?'Monitor layout updated: portrait at the AC end, work pair and laptop together on the opposite return. Your previous layout is backed up.':'Monitor layout updated. Export to save; browser storage is unavailable.'};
+        return {config,warning:persisted?'Continuous monitor arc loaded. The laptop and its two work monitors share a power control. Your previous layout is backed up.':'Monitor layout updated. Export to save; browser storage is unavailable.'};
       } catch {
         return {config:original,warning:'The monitor arrangement does not fit your edited desk. Your existing layout was kept unchanged.'};
       }
@@ -221,6 +224,7 @@ export function alignWorkstations(input: unknown): PlannerConfig {
     let item=config.furniture.find(f=>f.id===source.id);
     if(!item) { item=structuredClone(source);config.furniture.push(item); }
     item.position={...source.position};item.rotation=source.rotation;item.visible=true;
+    if(source.monitor && item.monitor) item.monitor.sourceId=source.monitor.sourceId;
     if(source.monitor?.mount==='wall') {
       item.position.x+=dx;item.position.z+=dz;
       item.monitor={...item.monitor!,wallMount:structuredClone(source.monitor.wallMount)};
@@ -229,7 +233,8 @@ export function alignWorkstations(input: unknown): PlannerConfig {
       item.parentId=desk!.id;item.position={...workGroup.position};
     } else if(source.id==='work-laptop') {
       item.parentId=desk!.id;item.onDesktop=true;
-      item.position={x:workGroup.position.x,y:desk!.dimensions.height,z:desk!.dimensions.depth/2-.44};
+      item.position=workLaptopPosition(desk!);
+      item.laptop={...item.laptop!,poweredOn:item.laptop?.poweredOn ?? true};
     }
   }
   return validateConfig(config);

@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { ArcRotateCamera, NullEngine, Scene, Vector3, Matrix } from '@babylonjs/core';
 import { freshConfig } from '../src/config/office';
-import { alignWorkstations, loadConfig, MONITOR_PREVIOUS_STORAGE_KEY, STORAGE_KEY } from '../src/config/storage';
+import { alignWorkstations, loadConfig, MONITOR_PREVIOUS_STORAGE_KEY, PANORAMA_PREVIOUS_STORAGE_KEY, STORAGE_KEY } from '../src/config/storage';
 import { worldTransform } from '../src/navigation/collision';
 
-test('comparison viewpoint shows portrait first, three landscapes, then the separate work pair and laptop', () => {
+test('comparison viewpoint shows portrait first, three landscapes, then the joined work pair with the laptop below', () => {
   const config=freshConfig(),engine=new NullEngine(),scene=new Scene(engine);
   try {
     const camera=new ArcRotateCamera('Comparison',Math.PI/3,Math.PI/3.2,6.5,new Vector3(0,.62,0),scene);
@@ -26,9 +26,8 @@ test('comparison viewpoint shows portrait first, three landscapes, then the sepa
     const laptop=config.furniture.find(f=>f.id==='work-laptop')!;
     const lp=worldTransform(laptop,config.furniture).position;
     const positions=work.map(f=>worldTransform(f,config.furniture).position);
-    assert.ok(positions.every(p=>p.z>Math.max(...personal.map(f=>f.position.z))+.5),'Work screens remain on the separate right-hand return');
-    assert.ok(lp.z>.5 && positions.every(p=>p.z>.5),'Pair and laptop share the north return');
-    assert.ok(Math.abs(lp.x-(positions[0].x+positions[1].x)/2)<.01,'Laptop is centered directly below the pair');
+    assert.ok(positions.every(p=>p.z>Math.max(...personal.map(f=>f.position.z))),'Work screens continue beyond the main four');
+    assert.ok(lp.z>0 && lp.x<-1.1,'Laptop occupies the existing inside corner');
     assert.ok(positions.every(p=>p.y>lp.y+laptop.dimensions.height),'Open laptop does not cover either work screen');
     assert.equal(config.furniture.filter(f=>f.kind==='monitor').length,6);
     assert.equal(config.furniture.filter(f=>f.kind==='laptop').length,1);
@@ -53,6 +52,10 @@ test('v8 monitor-only upgrade preserves customized room, desk, chair and PC and 
     assert.equal(data.get(MONITOR_PREVIOUS_STORAGE_KEY),original);
     assert.ok(data.has(STORAGE_KEY));
     assert.deepEqual(loadConfig().config,after);
+    data.delete(STORAGE_KEY);data.delete(MONITOR_PREVIOUS_STORAGE_KEY);
+    data.set(PANORAMA_PREVIOUS_STORAGE_KEY,original);
+    assert.deepEqual(loadConfig().config,after,'The most recent checkpoint also receives the arc and power bindings');
+    assert.equal(data.get(PANORAMA_PREVIOUS_STORAGE_KEY),original);
   } finally {
     if(descriptor) Object.defineProperty(globalThis,'localStorage',descriptor);
     else delete (globalThis as any).localStorage;

@@ -7,6 +7,7 @@ import { createWallMonitorArm } from './wallMounts';
 import { createSharedDeskArm } from './deskArm';
 import earcut from 'earcut';
 import { deskOutline } from './deskProfile';
+import { isDisplayPowered } from './displayPower';
 
 export type FurnitureObject = { config: FurnitureConfig; root: Mesh; meshes: Mesh[]; materials: StandardMaterial[] };
 
@@ -130,8 +131,9 @@ export function createFurniture(scene: Scene, configs: FurnitureConfig[], mats: 
           const panelMounted = wallMounted || config.monitor.mount === 'shared-arm';
           const centerY = panelMounted ? h / 2 : h - panelH / 2, screenZ = panelMounted ? 0 : -d * .18;
           b('display shell', panelW, panelH, .035, 0, centerY, screenZ);
-          const display = solid(scene, `${config.id} screen`, '#54716f', .15);
-          display.emissiveColor = Color3.FromHexString('#789a98').scale(.18); object.materials.push(display);
+          const powered = isDisplayPowered(config, configs);
+          const display = solid(scene, `${config.id} screen`, powered ? '#54716f' : '#101716', .15);
+          display.emissiveColor = powered ? Color3.FromHexString('#789a98').scale(.18) : Color3.Black(); object.materials.push(display);
           b('27 inch active panel', panel.width, panel.height, .002, 0, centerY, screenZ - .018, display);
           if (panelMounted) {
             if (wallMounted && room && config.monitor.wallMount) object.meshes.push(...createWallMonitorArm(scene, config, room, root, mats.dark));
@@ -190,8 +192,9 @@ export function createFurniture(scene: Scene, configs: FurnitureConfig[], mats: 
         const lidY = thickness + lidHeight * cosine / 2, lidZ = hingeZ + lidHeight * sine / 2;
         const lid = b('laptop screen shell', lidWidth, lidHeight, lidThickness, 0, lidY, lidZ);
         lid.rotation.x = tilt;
-        const display = solid(scene, `${config.id} laptop display`, '#587373', .12);
-        display.emissiveColor = Color3.FromHexString('#789a98').scale(.18); object.materials.push(display);
+        const powered = isDisplayPowered(config, configs);
+        const display = solid(scene, `${config.id} laptop display`, powered ? '#587373' : '#101716', .12);
+        display.emissiveColor = powered ? Color3.FromHexString('#789a98').scale(.18) : Color3.Black(); object.materials.push(display);
         const inset = lidThickness / 2 + .0008;
         const screen = b('laptop active screen', lidWidth - .014, lidHeight - .017, .001,
           0, lidY + sine * inset, lidZ - cosine * inset, display);
