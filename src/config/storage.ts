@@ -8,8 +8,9 @@ import { monitorMountGeometry, wallMountFootprints } from '../furniture/wallMoun
 import { architectureConflict, itemFitsRoom, obstacles, rectanglesOverlap } from '../navigation/collision';
 import { airConditionerObstacle } from '../architecture/airConditionerLayout';
 
-// Revision 14 joins only the work pair to the horizontal row and moves the laptop right.
-export const STORAGE_KEY = 'roomwork.office.v14';
+// Revision 15 retracts the shared work arm toward the wall; the laptop stays put.
+export const STORAGE_KEY = 'roomwork.office.v15';
+export const ARM_PREVIOUS_STORAGE_KEY = 'roomwork.office.v14';
 export const WORK_ROW_PREVIOUS_STORAGE_KEY = 'roomwork.office.v13';
 export const POSITION_PREVIOUS_STORAGE_KEY = 'roomwork.office.v12';
 export const AUDIT_PREVIOUS_STORAGE_KEY = 'roomwork.office.v11';
@@ -167,6 +168,16 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
       }
       return { config: validateConfig(input) };
     }
+    const previousArm=localStorage.getItem(ARM_PREVIOUS_STORAGE_KEY);
+    if(previousArm) {
+      const original=validateConfig(JSON.parse(previousArm));
+      try {
+        const config=retractWorkMonitorArm(original),persisted=saveConfig(config);
+        return {config,warning:persisted?'Work monitor arm retracted toward the wall. Laptop and remaining layout unchanged; previous layout backed up.':'Work arm retracted. Export to save; browser storage is unavailable.'};
+      } catch(error) {
+        return {config:original,warning:`Work arm refinement cannot fit this saved layout: ${(error as Error).message} Your existing scene was kept unchanged.`};
+      }
+    }
     const previousRow=localStorage.getItem(WORK_ROW_PREVIOUS_STORAGE_KEY);
     if(previousRow) {
       const original=validateConfig(JSON.parse(previousRow));
@@ -249,6 +260,15 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
 
 /** Change only the two work screens, their existing desk support position, and laptop pose. */
 export function joinWorkMonitorRow(input: unknown): PlannerConfig {
+  return positionWorkPair(input,true);
+}
+
+/** Retract only the existing shared support and its two displays, preserving the laptop. */
+export function retractWorkMonitorArm(input: unknown): PlannerConfig {
+  return positionWorkPair(input,false);
+}
+
+function positionWorkPair(input: unknown,moveLaptop:boolean): PlannerConfig {
   const config=validateConfig(input),reference=freshConfig();
   for(const id of ['desk','monitor-portrait','monitor-left','monitor-center','monitor-right']) {
     const current=config.furniture.find(f=>f.id===id),source=reference.furniture.find(f=>f.id===id)!;
@@ -256,7 +276,8 @@ export function joinWorkMonitorRow(input: unknown): PlannerConfig {
       if(JSON.stringify(current?.[key])!==JSON.stringify(source[key])) fail(`${id} differs from the validated row reference; it was not moved.`);
     }
   }
-  for(const id of ['work-zone','work-monitor-left','work-monitor-right','work-laptop']) {
+  const moving=['work-zone','work-monitor-left','work-monitor-right',...(moveLaptop?['work-laptop']:[])];
+  for(const id of moving) {
     const item=config.furniture.find(f=>f.id===id),source=reference.furniture.find(f=>f.id===id)!;
     if(!item || item.parentId!==source.parentId || JSON.stringify(item.dimensions)!==JSON.stringify(source.dimensions)
       || item.monitor?.mount!==source.monitor?.mount || JSON.stringify(item.workZone)!==JSON.stringify(source.workZone)) fail(`The existing support or dimensions for ${id} differ from the reference.`);

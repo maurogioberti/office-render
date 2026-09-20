@@ -6,15 +6,15 @@ const DEFAULT_DESK: FurnitureConfig = { id: 'desk', name: 'Floating wraparound d
  * Both displays share ONE desktop clamp/column. The laptop is an independent desk child.
  */
 const WORK_ZONE_CONFIG: FurnitureConfig[] = [
-  { id: 'work-zone', name: 'Work zone · dual monitor arm', kind: 'work-zone', parentId: 'desk', onDesktop: true, dimensions: { width: 1.18, height: 0.76, depth: 0.74 }, position: { x: .19, y: 0.72, z: 0.91 }, rotation: 0, color: '#383e3d', visible: true, workZone: { surfaceOffset: .04, columnHeight: .46, armReach: .65 } },
-  { id: 'work-monitor-left', name: 'Work · Samsung 27 · left', kind: 'monitor', parentId: 'work-zone', dimensions: { width: 0.612, height: 0.36, depth: 0.052 }, position: { x: -.141654054, y: .395, z: -.306031055 }, rotation: -30, color: '#343c3b', visible: true, monitor: { brand: 'Samsung', diagonalInches: 27, orientation: 'landscape', mount: 'shared-arm', sourceId: 'work-laptop', bezel: .006 } },
-  { id: 'work-monitor-right', name: 'Work · Samsung 27 · right', kind: 'monitor', parentId: 'work-zone', dimensions: { width: 0.612, height: 0.36, depth: 0.052 }, position: { x: .467237137, y: .395, z: -.171043127 }, rotation: 5, color: '#343c3b', visible: true, monitor: { brand: 'Samsung', diagonalInches: 27, orientation: 'landscape', mount: 'shared-arm', sourceId: 'work-laptop', bezel: .006 } },
+  { id: 'work-zone', name: 'Work zone · dual monitor arm', kind: 'work-zone', parentId: 'desk', onDesktop: true, dimensions: { width: 1.18, height: 0.76, depth: 0.74 }, position: { x: .06, y: 0.72, z: 0.91 }, rotation: 0, color: '#383e3d', visible: true, workZone: { surfaceOffset: .04, columnHeight: .46, armReach: .65 } },
+  { id: 'work-monitor-left', name: 'Work · Samsung 27 · left', kind: 'monitor', parentId: 'work-zone', dimensions: { width: 0.612, height: 0.36, depth: 0.052 }, position: { x: -.113400997, y: .395, z: -.212286075 }, rotation: -55, color: '#343c3b', visible: true, monitor: { brand: 'Samsung', diagonalInches: 27, orientation: 'landscape', mount: 'shared-arm', sourceId: 'work-laptop', bezel: .006 } },
+  { id: 'work-monitor-right', name: 'Work · Samsung 27 · right', kind: 'monitor', parentId: 'work-zone', dimensions: { width: 0.612, height: 0.36, depth: 0.052 }, position: { x: .381898597, y: .395, z: .167770671 }, rotation: -20, color: '#343c3b', visible: true, monitor: { brand: 'Samsung', diagonalInches: 27, orientation: 'landscape', mount: 'shared-arm', sourceId: 'work-laptop', bezel: .006 } },
 ];
 
 export function createWorkZone(desk: FurnitureConfig): FurnitureConfig[] {
   const items = structuredClone(WORK_ZONE_CONFIG);
   items[0].parentId = desk.id;
-  items[0].position = { x: desk.dimensions.width / 2 - .46, y: desk.dimensions.height - .04, z: desk.dimensions.depth / 2 - .34 };
+  items[0].position = { x: desk.dimensions.width / 2 - .59, y: desk.dimensions.height - .04, z: desk.dimensions.depth / 2 - .34 };
   return items;
 }
 

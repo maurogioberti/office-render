@@ -23,7 +23,7 @@ test('real-size audit preserves the exact desk and architecture and measures sup
   assert.ok(report.main.rightClearance>.50);
   assert.ok(Math.abs(report.main.returnTipClearance-.075)<.000001);
   assert.ok(report.work.joined);
-  assert.ok(report.work.span>1.19 && report.work.span<1.20);
+  assert.ok(report.work.span>.98 && report.work.span<1.00);
   assert.ok(report.laptop.clearCorner.width>.45 && report.laptop.clearCorner.depth>.50);
   assert.ok(report.tower.position.z<-.7,'Tower stays under the left/south return');
   assert.ok(report.tower.ventilation.rear>=.10 && report.tower.ventilation.frontToChair>=.30);

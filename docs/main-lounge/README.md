@@ -28,3 +28,5 @@ Configuration: `src/config/lounge.ts` contains TV size, anchor and link lengths;
 [Daily / viewing](daily.png) - [Stored](tv-stored.png) - [Window access](tv-window-access.png) - [Sleeping sofa / viewing](sleeping.png).
 
 Regenerate these previews with `npm run lounge:views`.
+
+The shared work-monitor arm is now retracted toward the west/north wall perimeter: its two reaches are approximately **53 cm and 39 cm**, with **25 mm** casing gaps continuing the personal row. The laptop remains at its previous far-right desktop position. TV dimensions, height and motion are unchanged by this monitor refinement.

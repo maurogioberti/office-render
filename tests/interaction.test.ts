@@ -30,7 +30,7 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
   const field=(selector:string,value:string)=>{
     const input=dom.document.querySelector(selector) as any; assert.ok(input,selector); input.value=value; input.dispatchEvent(new dom.Event('change',{bubbles:true}));
   };
-  const saved=()=>JSON.parse(dom.localStorage.getItem('roomwork.office.v14')!) as ReturnType<typeof freshConfig>;
+  const saved=()=>JSON.parse(dom.localStorage.getItem('roomwork.office.v15')!) as ReturnType<typeof freshConfig>;
   try {
     assert.equal(dom.localStorage.getItem('roomwork.office.v7'),legacyJSON,'Original browser save remains intact');
     assert.deepEqual(saved().room,legacy.room,'The approved room is preserved exactly');
@@ -166,7 +166,7 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
     field('[data-group="workZone"][data-field="armReach"]','0.70');
     assert.equal(saved().furniture.find(f=>f.id==='work-zone')!.workZone!.armReach,.7);
     button('[data-action="chair-work"]');
-    assert.ok(Math.abs(saved().furniture.find(f=>f.id==='chair')!.position.x+1.11)<1e-8,'Explicit seating control follows the shifted shared support');
+    assert.ok(Math.abs(saved().furniture.find(f=>f.id==='chair')!.position.x+1.24)<1e-8,'Explicit seating control follows the shifted shared support');
     button('[data-action="chair-personal"]');
     assert.deepEqual(saved().furniture.find(f=>f.id==='chair')!.position,{x:-.62,y:0,z:-.1});
     button('[data-select="work-laptop"]');
@@ -191,7 +191,7 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
     renamed.furniture.filter(f=>f.parentId==='work-zone').forEach(f=>{f.parentId='company-zone';});
     (planner as any).ui.actions.import(JSON.stringify(renamed));
     button('[data-select="company-zone"]'); button('[data-action="chair-work"]');
-    assert.ok(Math.abs(saved().furniture.find(f=>f.id==='chair')!.position.x+1.11)<1e-8,'Chair action supports configured group identifiers');
+    assert.ok(Math.abs(saved().furniture.find(f=>f.id==='chair')!.position.x+1.24)<1e-8,'Chair action supports configured group identifiers');
     button('[data-action="toggle-work-zone"]');
     assert.equal(saved().furniture.length,8,'Removal targets the displayed group even with a customized identifier');
     button('[data-visibility="desk"]'); assert.equal(saved().furniture.find((f:any)=>f.id==='desk').visible,false);
