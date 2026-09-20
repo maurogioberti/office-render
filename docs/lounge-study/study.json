@@ -1,0 +1,1647 @@
+{
+  "generated": "2026-09-20",
+  "lockedOfficeCommit": "6967b8e",
+  "officeSha256": "d443c4722f84033976b9ae6f955b76079fa2a0d4f83c277bd43e84ddccf560bc",
+  "candidates": [
+    {
+      "id": "mini",
+      "name": "Sofy24 Mini · compact L",
+      "width": 2,
+      "depth": 0.9,
+      "height": 0.85,
+      "chaiseDepth": 1.3,
+      "chaiseWidth": 0.72,
+      "openDepth": 1.5,
+      "bedLength": 1.9,
+      "bedWidth": 1.4,
+      "seatHeight": 0.45,
+      "mechanism": "dl",
+      "source": "https://sofy24.pl/narozniki/421-mini-naroznik.html",
+      "qualification": "Published 200 × 130 cm option; 190 × 140 cm bed; DL pull-forward seat / fold-down back; storage. Open outer depth 150 cm includes a provisional 10 cm frame allowance. Chaise width 72 cm and internal mechanism geometry require supplier confirmation."
+    },
+    {
+      "id": "tornsborg",
+      "name": "IKEA TORNSBORG · smaller straight sleeper",
+      "width": 1.54,
+      "depth": 0.95,
+      "height": 0.82,
+      "chaiseDepth": 0.95,
+      "chaiseWidth": 0,
+      "openDepth": 1.95,
+      "bedLength": 1.95,
+      "bedWidth": 1.4,
+      "seatHeight": 0.38,
+      "mechanism": "forward-fold",
+      "source": "https://www.ikea.com/gb/en/p/tornsborg-2-seat-sofa-bed-naggen-beige-pine-40586103/",
+      "qualification": "Published 154 × 95 cm closed and 195 cm total unfolded depth; 140 × 195 cm bed. Straight sofa, not an L. Detailed moving linkage is schematic."
+    },
+    {
+      "id": "lycksele",
+      "name": "IKEA LYCKSELE · smaller straight sleeper",
+      "width": 1.42,
+      "depth": 1,
+      "height": 0.87,
+      "chaiseDepth": 1,
+      "chaiseWidth": 0,
+      "openDepth": 1.98,
+      "bedLength": 1.88,
+      "bedWidth": 1.4,
+      "seatHeight": 0.39,
+      "mechanism": "forward-fold",
+      "source": "https://www.ikea.com/de/en/p/lycksele-two-seat-sofa-bed-frame-black-90032681/",
+      "qualification": "Published 142 × 100 cm closed; 140 × 188 cm bed. Open outer depth 198 cm includes a provisional 10 cm frame allowance. Straight sofa, not an L."
+    }
+  ],
+  "reports": [
+    {
+      "candidate": "mini",
+      "wall": "north",
+      "state": "daily",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": -0.13000000000000012,
+          "x1": 1.8699999999999999,
+          "z0": 0.37,
+          "z1": 1.27
+        },
+        {
+          "x0": 1.15,
+          "x1": 1.8699999999999999,
+          "z0": -0.030000000000000027,
+          "z1": 0.37
+        }
+      ],
+      "openEnvelope": {
+        "x0": -0.13000000000000012,
+        "x1": 1.8699999999999999,
+        "z0": -0.22999999999999998,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": -0.13000000000000012,
+          "x1": 1.8699999999999999,
+          "z0": 0.37,
+          "z1": 1.27
+        },
+        {
+          "x0": 1.15,
+          "x1": 1.8699999999999999,
+          "z0": -0.030000000000000027,
+          "z1": 0.37
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": false,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0.21999999999999997,
+        "sofaToDesk": 0.4299999999999998,
+        "sofaToChair": 0.2267156809750926,
+        "southAisle": 1.27,
+        "chairRearwardTravelTested": 0.6000000000000003,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0.47999999999999976
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.27373111255440485,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.2475,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        }
+      ],
+      "verdict": "conditional geometric fit",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    },
+    {
+      "candidate": "mini",
+      "wall": "north",
+      "state": "seating",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": -0.13000000000000012,
+          "x1": 1.8699999999999999,
+          "z0": 0.37,
+          "z1": 1.27
+        },
+        {
+          "x0": 1.15,
+          "x1": 1.8699999999999999,
+          "z0": -0.030000000000000027,
+          "z1": 0.37
+        }
+      ],
+      "openEnvelope": {
+        "x0": -0.13000000000000012,
+        "x1": 1.8699999999999999,
+        "z0": -0.22999999999999998,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": -0.13000000000000012,
+          "x1": 1.8699999999999999,
+          "z0": 0.37,
+          "z1": 1.27
+        },
+        {
+          "x0": 1.15,
+          "x1": 1.8699999999999999,
+          "z0": -0.030000000000000027,
+          "z1": 0.37
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": false,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0.21999999999999997,
+        "sofaToDesk": 0.4299999999999998,
+        "sofaToChair": 0.2267156809750926,
+        "southAisle": 1.27,
+        "chairRearwardTravelTested": 0.6000000000000003,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0.47999999999999976
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.27373111255440485,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.2475,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        }
+      ],
+      "verdict": "conditional geometric fit",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    },
+    {
+      "candidate": "mini",
+      "wall": "north",
+      "state": "sleeping",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": -0.13000000000000012,
+          "x1": 1.8699999999999999,
+          "z0": 0.37,
+          "z1": 1.27
+        },
+        {
+          "x0": 1.15,
+          "x1": 1.8699999999999999,
+          "z0": -0.030000000000000027,
+          "z1": 0.37
+        }
+      ],
+      "openEnvelope": {
+        "x0": -0.13000000000000012,
+        "x1": 1.8699999999999999,
+        "z0": -0.22999999999999998,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": -0.13000000000000012,
+          "x1": 1.8699999999999999,
+          "z0": -0.22999999999999998,
+          "z1": 1.27
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": false,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0.020000000000000018,
+        "sofaToDesk": 0.4299999999999998,
+        "sofaToChair": 0.16999999999999987,
+        "southAisle": 1.07,
+        "chairRearwardTravelTested": 0.17,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0.47999999999999976
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.07476037686314575,
+          "work": {
+            "width": 0,
+            "qualification": "No route to this target on the 20 mm grid."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.04750000000000004,
+          "work": {
+            "width": 0,
+            "qualification": "No route to this target on the 20 mm grid."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        }
+      ],
+      "verdict": "conditional geometric fit",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    },
+    {
+      "candidate": "mini",
+      "wall": "east",
+      "state": "daily",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": 0.9699999999999999,
+          "x1": 1.8699999999999999,
+          "z0": -0.73,
+          "z1": 1.27
+        },
+        {
+          "x0": 0.5699999999999998,
+          "x1": 0.9699999999999999,
+          "z0": -0.73,
+          "z1": -0.010000000000000009
+        }
+      ],
+      "openEnvelope": {
+        "x0": 0.3699999999999999,
+        "x1": 1.8699999999999999,
+        "z0": -0.73,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": 0.9699999999999999,
+          "x1": 1.8699999999999999,
+          "z0": -0.73,
+          "z1": 1.27
+        },
+        {
+          "x0": 0.5699999999999998,
+          "x1": 0.9699999999999999,
+          "z0": -0.73,
+          "z1": -0.010000000000000009
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": true,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0,
+        "sofaToDesk": 1.13,
+        "sofaToChair": 0.8699999999999999,
+        "southAisle": 0.5700000000000001,
+        "chairRearwardTravelTested": 0.6000000000000003,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0.47999999999999976
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": 5.5,
+          "minimumSofaGap": 0,
+          "work": {
+            "width": 0.2600000000000001,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.2600000000000001,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.2600000000000001,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": 9,
+          "minimumSofaGap": 0,
+          "work": {
+            "width": 0.2600000000000001,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.2600000000000001,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.2600000000000001,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        }
+      ],
+      "verdict": "conflict",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    },
+    {
+      "candidate": "mini",
+      "wall": "east",
+      "state": "seating",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": 0.9699999999999999,
+          "x1": 1.8699999999999999,
+          "z0": -0.73,
+          "z1": 1.27
+        },
+        {
+          "x0": 0.5699999999999998,
+          "x1": 0.9699999999999999,
+          "z0": -0.73,
+          "z1": -0.010000000000000009
+        }
+      ],
+      "openEnvelope": {
+        "x0": 0.3699999999999999,
+        "x1": 1.8699999999999999,
+        "z0": -0.73,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": 0.9699999999999999,
+          "x1": 1.8699999999999999,
+          "z0": -0.73,
+          "z1": 1.27
+        },
+        {
+          "x0": 0.5699999999999998,
+          "x1": 0.9699999999999999,
+          "z0": -0.73,
+          "z1": -0.010000000000000009
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": true,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0,
+        "sofaToDesk": 1.13,
+        "sofaToChair": 0.8699999999999999,
+        "southAisle": 0.5700000000000001,
+        "chairRearwardTravelTested": 0.6000000000000003,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0.47999999999999976
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": 5.5,
+          "minimumSofaGap": 0,
+          "work": {
+            "width": 0.2600000000000001,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.2600000000000001,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.2600000000000001,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": 9,
+          "minimumSofaGap": 0,
+          "work": {
+            "width": 0.2600000000000001,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.2600000000000001,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.2600000000000001,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        }
+      ],
+      "verdict": "conflict",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    },
+    {
+      "candidate": "mini",
+      "wall": "east",
+      "state": "sleeping",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": 0.9699999999999999,
+          "x1": 1.8699999999999999,
+          "z0": -0.73,
+          "z1": 1.27
+        },
+        {
+          "x0": 0.5699999999999998,
+          "x1": 0.9699999999999999,
+          "z0": -0.73,
+          "z1": -0.010000000000000009
+        }
+      ],
+      "openEnvelope": {
+        "x0": 0.3699999999999999,
+        "x1": 1.8699999999999999,
+        "z0": -0.73,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": 0.3699999999999999,
+          "x1": 1.8699999999999999,
+          "z0": -0.73,
+          "z1": 1.27
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": true,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0,
+        "sofaToDesk": 0.9299999999999998,
+        "sofaToChair": 0.6699999999999999,
+        "southAisle": 0.5700000000000001,
+        "chairRearwardTravelTested": 0.6000000000000003,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0.47999999999999976
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": 5.5,
+          "minimumSofaGap": 0,
+          "work": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": 9,
+          "minimumSofaGap": 0,
+          "work": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        }
+      ],
+      "verdict": "conflict",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    },
+    {
+      "candidate": "tornsborg",
+      "wall": "north",
+      "state": "daily",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": 0.32999999999999985,
+          "x1": 1.8699999999999999,
+          "z0": 0.32000000000000006,
+          "z1": 1.27
+        }
+      ],
+      "openEnvelope": {
+        "x0": 0.32999999999999985,
+        "x1": 1.8699999999999999,
+        "z0": -0.6799999999999999,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": 0.32999999999999985,
+          "x1": 1.8699999999999999,
+          "z0": 0.32000000000000006,
+          "z1": 1.27
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": false,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0.5700000000000001,
+        "sofaToDesk": 0.8899999999999998,
+        "sofaToChair": 0.6378871373526824,
+        "southAisle": 1.62,
+        "chairRearwardTravelTested": 0.6000000000000003,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0.020000000000000018
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.6226681638023919,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.5975000000000001,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6209669878504014,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "right side"
+          }
+        }
+      ],
+      "verdict": "conditional geometric fit",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    },
+    {
+      "candidate": "tornsborg",
+      "wall": "north",
+      "state": "seating",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": 0.32999999999999985,
+          "x1": 1.8699999999999999,
+          "z0": 0.32000000000000006,
+          "z1": 1.27
+        }
+      ],
+      "openEnvelope": {
+        "x0": 0.32999999999999985,
+        "x1": 1.8699999999999999,
+        "z0": -0.6799999999999999,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": 0.32999999999999985,
+          "x1": 1.8699999999999999,
+          "z0": 0.32000000000000006,
+          "z1": 1.27
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": false,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0.5700000000000001,
+        "sofaToDesk": 0.8899999999999998,
+        "sofaToChair": 0.6378871373526824,
+        "southAisle": 1.62,
+        "chairRearwardTravelTested": 0.6000000000000003,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0.020000000000000018
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.6226681638023919,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.5975000000000001,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6209669878504014,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "right side"
+          }
+        }
+      ],
+      "verdict": "conditional geometric fit",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    },
+    {
+      "candidate": "tornsborg",
+      "wall": "north",
+      "state": "sleeping",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": 0.32999999999999985,
+          "x1": 1.8699999999999999,
+          "z0": 0.32000000000000006,
+          "z1": 1.27
+        }
+      ],
+      "openEnvelope": {
+        "x0": 0.32999999999999985,
+        "x1": 1.8699999999999999,
+        "z0": -0.6799999999999999,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": 0.32999999999999985,
+          "x1": 1.8699999999999999,
+          "z0": -0.6799999999999999,
+          "z1": 1.27
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": true,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0,
+        "sofaToDesk": 0.8899999999999998,
+        "sofaToChair": 0.6299999999999999,
+        "southAisle": 0.6200000000000001,
+        "chairRearwardTravelTested": 0.6000000000000003,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0.020000000000000018
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": 5.5,
+          "minimumSofaGap": 0,
+          "work": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": 10.25,
+          "minimumSofaGap": 0,
+          "work": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        }
+      ],
+      "verdict": "conflict",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    },
+    {
+      "candidate": "tornsborg",
+      "wall": "east",
+      "state": "daily",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": 0.9199999999999999,
+          "x1": 1.8699999999999999,
+          "z0": -0.27,
+          "z1": 1.27
+        }
+      ],
+      "openEnvelope": {
+        "x0": -0.08000000000000007,
+        "x1": 1.8699999999999999,
+        "z0": -0.27,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": 0.9199999999999999,
+          "x1": 1.8699999999999999,
+          "z0": -0.27,
+          "z1": 1.27
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": true,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0,
+        "sofaToDesk": 1.48,
+        "sofaToChair": 1.22,
+        "southAisle": 1.03,
+        "chairRearwardTravelTested": 0.6000000000000003,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0.020000000000000018
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.035035832961130275,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.007500000000000007,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        }
+      ],
+      "verdict": "conflict",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    },
+    {
+      "candidate": "tornsborg",
+      "wall": "east",
+      "state": "seating",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": 0.9199999999999999,
+          "x1": 1.8699999999999999,
+          "z0": -0.27,
+          "z1": 1.27
+        }
+      ],
+      "openEnvelope": {
+        "x0": -0.08000000000000007,
+        "x1": 1.8699999999999999,
+        "z0": -0.27,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": 0.9199999999999999,
+          "x1": 1.8699999999999999,
+          "z0": -0.27,
+          "z1": 1.27
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": true,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0,
+        "sofaToDesk": 1.48,
+        "sofaToChair": 1.22,
+        "southAisle": 1.03,
+        "chairRearwardTravelTested": 0.6000000000000003,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0.020000000000000018
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.035035832961130275,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.007500000000000007,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        }
+      ],
+      "verdict": "conflict",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    },
+    {
+      "candidate": "tornsborg",
+      "wall": "east",
+      "state": "sleeping",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": 0.9199999999999999,
+          "x1": 1.8699999999999999,
+          "z0": -0.27,
+          "z1": 1.27
+        }
+      ],
+      "openEnvelope": {
+        "x0": -0.08000000000000007,
+        "x1": 1.8699999999999999,
+        "z0": -0.27,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": -0.08000000000000007,
+          "x1": 1.8699999999999999,
+          "z0": -0.27,
+          "z1": 1.27
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": true,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0,
+        "sofaToDesk": 0.47999999999999987,
+        "sofaToChair": 0.21999999999999992,
+        "southAisle": 1.03,
+        "chairRearwardTravelTested": 0.22000000000000006,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0.020000000000000018
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.0350358329611303,
+          "work": {
+            "width": 0,
+            "qualification": "No route to this target on the 20 mm grid."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "left side"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.007500000000000007,
+          "work": {
+            "width": 0,
+            "qualification": "No route to this target on the 20 mm grid."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "left side"
+          }
+        }
+      ],
+      "verdict": "conflict",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    },
+    {
+      "candidate": "lycksele",
+      "wall": "north",
+      "state": "daily",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": 0.44999999999999996,
+          "x1": 1.8699999999999999,
+          "z0": 0.27,
+          "z1": 1.27
+        }
+      ],
+      "openEnvelope": {
+        "x0": 0.44999999999999996,
+        "x1": 1.8699999999999999,
+        "z0": -0.71,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": 0.44999999999999996,
+          "x1": 1.8699999999999999,
+          "z0": 0.27,
+          "z1": 1.27
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": false,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0.52,
+        "sofaToDesk": 1.0099999999999998,
+        "sofaToChair": 0.7516648189186454,
+        "southAisle": 1.57,
+        "chairRearwardTravelTested": 0.6000000000000003,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.5727844823618361,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.5475000000000001,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "right side"
+          }
+        }
+      ],
+      "verdict": "conditional geometric fit",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    },
+    {
+      "candidate": "lycksele",
+      "wall": "north",
+      "state": "seating",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": 0.44999999999999996,
+          "x1": 1.8699999999999999,
+          "z0": 0.27,
+          "z1": 1.27
+        }
+      ],
+      "openEnvelope": {
+        "x0": 0.44999999999999996,
+        "x1": 1.8699999999999999,
+        "z0": -0.71,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": 0.44999999999999996,
+          "x1": 1.8699999999999999,
+          "z0": 0.27,
+          "z1": 1.27
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": false,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0.52,
+        "sofaToDesk": 1.0099999999999998,
+        "sofaToChair": 0.7516648189186454,
+        "southAisle": 1.57,
+        "chairRearwardTravelTested": 0.6000000000000003,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.5727844823618361,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.5475000000000001,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "right side"
+          }
+        }
+      ],
+      "verdict": "conditional geometric fit",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    },
+    {
+      "candidate": "lycksele",
+      "wall": "north",
+      "state": "sleeping",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": 0.44999999999999996,
+          "x1": 1.8699999999999999,
+          "z0": 0.27,
+          "z1": 1.27
+        }
+      ],
+      "openEnvelope": {
+        "x0": 0.44999999999999996,
+        "x1": 1.8699999999999999,
+        "z0": -0.71,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": 0.44999999999999996,
+          "x1": 1.8699999999999999,
+          "z0": -0.71,
+          "z1": 1.27
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": true,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0,
+        "sofaToDesk": 1.0099999999999998,
+        "sofaToChair": 0.75,
+        "southAisle": 0.5900000000000001,
+        "chairRearwardTravelTested": 0.6000000000000003,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": 5.5,
+          "minimumSofaGap": 0,
+          "work": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": 9.5,
+          "minimumSofaGap": 0,
+          "work": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.26000000000000023,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        }
+      ],
+      "verdict": "conflict",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    },
+    {
+      "candidate": "lycksele",
+      "wall": "east",
+      "state": "daily",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": 0.8699999999999999,
+          "x1": 1.8699999999999999,
+          "z0": -0.1499999999999999,
+          "z1": 1.27
+        }
+      ],
+      "openEnvelope": {
+        "x0": -0.1100000000000001,
+        "x1": 1.8699999999999999,
+        "z0": -0.1499999999999999,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": 0.8699999999999999,
+          "x1": 1.8699999999999999,
+          "z0": -0.1499999999999999,
+          "z1": 1.27
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": false,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0.10000000000000009,
+        "sofaToDesk": 1.4299999999999997,
+        "sofaToChair": 1.17,
+        "southAisle": 1.1500000000000001,
+        "chairRearwardTravelTested": 0.6000000000000003,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.15429311765091802,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.1275000000000001,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        }
+      ],
+      "verdict": "conditional geometric fit",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    },
+    {
+      "candidate": "lycksele",
+      "wall": "east",
+      "state": "seating",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": 0.8699999999999999,
+          "x1": 1.8699999999999999,
+          "z0": -0.1499999999999999,
+          "z1": 1.27
+        }
+      ],
+      "openEnvelope": {
+        "x0": -0.1100000000000001,
+        "x1": 1.8699999999999999,
+        "z0": -0.1499999999999999,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": 0.8699999999999999,
+          "x1": 1.8699999999999999,
+          "z0": -0.1499999999999999,
+          "z1": 1.27
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": false,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0.10000000000000009,
+        "sofaToDesk": 1.4299999999999997,
+        "sofaToChair": 1.17,
+        "southAisle": 1.1500000000000001,
+        "chairRearwardTravelTested": 0.6000000000000003,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.15429311765091802,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.1275000000000001,
+          "work": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "front"
+          }
+        }
+      ],
+      "verdict": "conditional geometric fit",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    },
+    {
+      "candidate": "lycksele",
+      "wall": "east",
+      "state": "sleeping",
+      "units": "m",
+      "assumptions": {
+        "wallConfirmed": false,
+        "doorHandingConfirmed": false,
+        "wallGap": 0.03
+      },
+      "closed": [
+        {
+          "x0": 0.8699999999999999,
+          "x1": 1.8699999999999999,
+          "z0": -0.1499999999999999,
+          "z1": 1.27
+        }
+      ],
+      "openEnvelope": {
+        "x0": -0.1100000000000001,
+        "x1": 1.8699999999999999,
+        "z0": -0.1499999999999999,
+        "z1": 1.27
+      },
+      "footprint": [
+        {
+          "x0": -0.1100000000000001,
+          "x1": 1.8699999999999999,
+          "z0": -0.1499999999999999,
+          "z1": 1.27
+        }
+      ],
+      "collisions": [],
+      "doorOverlap": false,
+      "clearances": {
+        "doorJamb": 0.69,
+        "sofaToDoorOpening": 0.10000000000000009,
+        "sofaToDesk": 0.44999999999999984,
+        "sofaToChair": 0.1899999999999999,
+        "southAisle": 1.1500000000000001,
+        "chairRearwardTravelTested": 0.19000000000000003,
+        "doorWallRun": 1.55,
+        "doorWallWidthShortfall": 0
+      },
+      "doorTrials": [
+        {
+          "hinge": "south",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.15429311765091802,
+          "work": {
+            "width": 0,
+            "qualification": "No route to this target on the 20 mm grid."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "left side"
+          }
+        },
+        {
+          "hinge": "north",
+          "firstCollisionDegrees": null,
+          "minimumSofaGap": 0.1275000000000001,
+          "work": {
+            "width": 0,
+            "qualification": "No route to this target on the 20 mm grid."
+          },
+          "window": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification."
+          },
+          "exit": {
+            "width": 0.6749999999999999,
+            "qualification": "Exact clearance of the computed polyline in this model; 20 mm search grid, not a global optimum or safety certification.",
+            "edge": "left side"
+          }
+        }
+      ],
+      "verdict": "conditional geometric fit",
+      "qualification": "Fixed office unchanged. Unknown real door handing and supplier mechanism tolerances prevent final installation approval."
+    }
+  ]
+}

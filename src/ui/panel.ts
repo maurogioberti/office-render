@@ -21,7 +21,7 @@ export class UI {
       <header class="app-header">
         <div class="brand"><span class="brand-icon">${icon('box')}</span>roomwork<span class="brand-divider"></span><span class="project-title">Home office <span class="pill">PERSONAL SPACE</span></span></div>
         <div class="mode-switch" aria-label="Navigation mode"><button data-mode="edit" class="active" aria-pressed="true">${icon('mouse-pointer-2')}<span>Edit mode</span></button><button data-mode="walk" aria-pressed="false">${icon('footprints')}<span>Walk mode</span></button></div>
-        <div class="header-actions"><span id="save-state" class="save-state">${icon('check')}Saved locally</span><button class="icon-button" data-action="import" title="Import layout JSON" aria-label="Import layout JSON">${icon('upload')}</button><button class="export-button" data-action="export">${icon('download')}<span>Export layout</span></button></div>
+        <div class="header-actions"><span id="save-state" class="save-state">${icon('check')}Saved locally</span><a class="export-button study-link" href="/sofa-study.html" title="Open the separate sofa feasibility study" aria-label="Sofa feasibility study">${icon('armchair')}<span>Sofa study</span></a><button class="icon-button" data-action="import" title="Import layout JSON" aria-label="Import layout JSON">${icon('upload')}</button><button class="export-button" data-action="export">${icon('download')}<span>Export layout</span></button></div>
       </header>
       <div class="workspace">
         <aside class="sidebar" id="scene-panel" aria-label="Scene objects"></aside>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="820" viewBox="0 0 1100 820"><rect width="1100" height="820" fill="#fafbf7"/><g font-family="Arial, sans-serif">
+  <text x="40" y="36" font-size="24" fill="#273027">TV / sleeper preflight — fixed room, no additions installed</text>
+  <text x="40" y="65" font-size="15" fill="#8a3a2c">Red outline = failed door-wall trial, conditional on “front wall” meaning the door wall.</text>
+  <rect x="95" y="120" width="684" height="468" fill="#f1ede0" stroke="#69715f" stroke-dasharray=""/>
+  <polygon points="143.6,580.8 336.2,580.8 336.2,469.2 231.79999999999995,469.2 231.79999999999995,242.4 336.2,242.4 336.2,130.8 102.2,130.8 102.2,546.6 143.6,546.6" fill="#c8aa7c" stroke="#8d704b"/><polygon points="383,429.6 267.79999999999995,429.6 267.79999999999995,314.4 383,314.4" fill="#8b977f" stroke="#35403b"/><polygon points="291.2,485.40000000000003 291.2,561 251.59999999999997,561 251.59999999999997,485.40000000000003" fill="#58605c" stroke="#35403b"/><polygon points="253.71757560156055,558.6012865869432 248.34890015731474,566.2685497214882 158.1111109584394,503.08336949305686 163.47978640268525,495.41610635851185" fill="#648585" stroke="#35403b"/><polygon points="161.18623135127967,492.14057010092205 152.14516561721396,494.5631163630817 123.63365960872025,388.1567273390779 132.67472534278596,385.73418107691833" fill="#648585" stroke="#35403b"/><polygon points="133.0232342666538,381.75070595492514 124.54019337999074,377.7949990250322 171.09582109334622,277.9561332050748 179.57886198000926,281.9118401349678" fill="#648585" stroke="#35403b"/><polygon points="322.7,559.9200000000001 322.7,569.28 257.9,569.28 257.9,559.9200000000001" fill="#648585" stroke="#35403b"/><polygon points="173.9460375465149,235.40098173357666 142.97290998355842,191.16677134197113 196.0539624534851,153.99901826642332 227.02709001644158,198.2332286580289" fill="#648585" stroke="#35403b"/><polygon points="106.78999999999998,152.58 106.78999999999998,143.22 216.95,143.22 216.95,152.58" fill="#648585" stroke="#35403b"/><polygon points="221.45,152.58 221.45,143.22 331.61,143.22 331.61,152.58" fill="#648585" stroke="#35403b"/>
+  <rect x="95" y="552" width="43.199999999999996" height="36" fill="#d6d1c3" stroke="#69715f" stroke-dasharray=""/>
+  <rect x="635" y="120" width="144" height="342" fill="#f8e3dc" stroke="#b84f3d" stroke-dasharray="7 5"/>
+  <text x="640.4" y="292.79999999999995" fill="#a43f31" font-size="14">1.90 × 0.80 m</text><text x="640.4" y="316.20000000000005" fill="#a43f31" font-size="14">minimum trial</text>
+  <line x1="477.5" y1="588" x2="648.5" y2="588" stroke="#528da0" stroke-width="8" stroke-dasharray=""/>
+  <line x1="779" y1="546.6" x2="779" y2="399" stroke="#fafbf7" stroke-width="8" stroke-dasharray=""/>
+  <line x1="779" y1="546.6" x2="779" y2="399" stroke="#9b6343" stroke-width="3" stroke-dasharray=""/>
+  <line x1="648.5" y1="615" x2="779" y2="615" stroke="#b84f3d" stroke-width="3" stroke-dasharray=""/>
+  <text x="597.2" y="640.2" fill="#a43f31" font-size="14">0.725 m solid strip</text>
+  <line x1="807.8" y1="399" x2="807.8" y2="120" stroke="#b84f3d" stroke-width="3" stroke-dasharray=""/>
+  <text x="820.3999999999999" y="247.8" fill="#a43f31" font-size="14">1.550 m clear</text><text x="820.3999999999999" y="276.6" fill="#a43f31" font-size="14">wall above door</text>
+  <line x1="764.5999999999999" y1="462" x2="764.5999999999999" y2="399" stroke="#b84f3d" stroke-width="9" stroke-dasharray=""/>
+  <text x="820.3999999999999" y="438.6" fill="#a43f31" font-size="14">0.350 m overlap</text><text x="820.3999999999999" y="467.40000000000003" fill="#a43f31" font-size="14">with doorway</text>
+  <text x="145.39999999999998" y="87.60000000000001" fill="#263027" font-size="14">NORTH — 3.80 m</text><text x="145.39999999999998" y="665.4000000000001" fill="#263027" font-size="14">SOUTH — window / AC wall</text>
+  <text x="131" y="336" fill="#473e2d" font-size="14">Locked desk</text><text x="404.6" y="611.4" fill="#366b7b" font-size="14">Window 0.95 m</text>
+  <rect x="323.6" y="555.5999999999999" width="118.80000000000001" height="32.4" fill="#d9d8c8" stroke="#69715f" stroke-dasharray=""/><text x="341.59999999999997" y="539.4000000000001" fill="#666653" font-size="12">AC projection</text>
+  <text x="40" y="718" font-size="15">2.60 m between north/south walls. Window/door offsets and all workstation coordinates are unchanged.</text>
+  <text x="40" y="746" font-size="15">Door opening: 0.82 m nominal; rendered jamb clearance: 0.69 m. Swing direction is not configured.</text>
+  <text x="40" y="774" font-size="15">This is a necessary-condition study, not an approved installation or a completed movement-envelope analysis.</text>
+  </g></svg>

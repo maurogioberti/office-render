@@ -2,5 +2,5 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   server: { port: 5173, strictPort: true },
-  build: { target: 'es2022' },
+  build: { target: 'es2022', rollupOptions: { input: ['index.html', 'sofa-study.html'] } },
 });

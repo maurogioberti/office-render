@@ -1,0 +1,80 @@
+{
+  "status": "preflight-only; wall assignment and door swing await confirmation",
+  "units": "meters",
+  "room": {
+    "length": 3.8,
+    "width": 2.6,
+    "height": 2.65
+  },
+  "interpretation": {
+    "tv": "Left when facing the south/window wall from inside = east/entrance side.",
+    "sofa": "Door-wall result is conditional: the requested front wall has not yet been identified."
+  },
+  "tv": {
+    "width": 1.12,
+    "height": 0.65,
+    "depth": 0.07,
+    "windowStart": 0.22499999999999998,
+    "windowEnd": 1.1749999999999998,
+    "solidStripWidth": 0.7250000000000001,
+    "flatParkingShortfall": 0.395,
+    "highestCenterBelowWindowWith50mmGap": 0.7450000000000001,
+    "minimumBare43InchPanelWidth": 0.9519348016474328,
+    "qualification": "A low TV extending BELOW the opening is not excluded by the strip-width test; its arm, window access and full door sweep still need checking."
+  },
+  "sofa": {
+    "minimumWidth": 1.9,
+    "maximumWidth": 2.05,
+    "minimumDepth": 0.8,
+    "minimumChaiseDepth": 1.2,
+    "doorStart": -1.07,
+    "doorEnd": -0.25000000000000006,
+    "doorWallRuns": {
+      "south": 0.22999999999999998,
+      "north": 1.55
+    },
+    "bestDoorWallRun": 1.55,
+    "minimumDoorOverlapIfBackOnDoorWall": 0.34999999999999987,
+    "qualification": "Minimum-size bounding box only, not a selected or verified sleeper product. No sofa is installed."
+  },
+  "door": {
+    "openingWidth": 0.82,
+    "renderedJambClearWidth": 0.69,
+    "modeledLeafWidth": 0.72,
+    "hinge": null,
+    "openingDirection": null,
+    "maximumVerifiedAngle": null,
+    "qualification": "The current architecture uses 65 mm jambs and a static closed leaf; no hinge or opening state is configured. Nominal opening width is not clear passage width."
+  },
+  "fiber": {
+    "height": null,
+    "qualification": "Horizontal reference remains the AC center; the conflicting entry-height description is unresolved. No fiber object is moved or invented."
+  },
+  "states": [
+    {
+      "id": "daily-office",
+      "status": "not certified",
+      "doorAngle": null,
+      "narrowestCirculation": null,
+      "viewingDistance": null,
+      "reason": "Requested wall assignment and door motion are unresolved. If the sofa backs onto the door wall, even its minimum width fails before any bed or TV movement is considered."
+    },
+    {
+      "id": "tv",
+      "status": "not certified",
+      "doorAngle": null,
+      "narrowestCirculation": null,
+      "viewingDistance": null,
+      "reason": "Requested wall assignment and door motion are unresolved. If the sofa backs onto the door wall, even its minimum width fails before any bed or TV movement is considered."
+    },
+    {
+      "id": "sleep",
+      "status": "not certified",
+      "doorAngle": null,
+      "narrowestCirculation": null,
+      "viewingDistance": null,
+      "reason": "Requested wall assignment and door motion are unresolved. If the sofa backs onto the door wall, even its minimum width fails before any bed or TV movement is considered."
+    }
+  ],
+  "lockedSceneModified": false
+}
