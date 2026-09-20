@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "tsx --test tests/*.test.ts",
-    "audit": "tsx scripts/workstation-audit.ts"
+    "audit": "tsx scripts/workstation-audit.ts",
+    "views": "tsx scripts/render-workstation-views.ts"
   },
   "dependencies": {
     "@babylonjs/core": "^8.0.0",

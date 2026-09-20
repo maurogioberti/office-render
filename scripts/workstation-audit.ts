@@ -7,6 +7,7 @@ import { createFurniture } from '../src/furniture';
 import { createMaterials } from '../src/materials';
 import { obstacles, rectanglesOverlap, worldTransform } from '../src/navigation/collision';
 import type { FurnitureConfig, PlannerConfig } from '../src/config/types';
+import { furnitureFootprints } from '../src/furniture/footprint';
 
 const mainIds=['monitor-portrait','monitor-left','monitor-center','monitor-right'];
 const workIds=['work-monitor-left','work-monitor-right'];
@@ -28,6 +29,16 @@ function segmentDistance(p:Point,a:Point,b:Point) {
 function gap(a:Point[],b:Point[]) {
   return Math.min(...a.flatMap(p=>b.map((v,i)=>segmentDistance(p,v,b[(i+1)%4]))),...b.flatMap(p=>a.map((v,i)=>segmentDistance(p,v,a[(i+1)%4]))));
 }
+const area=(p:Point[])=>Math.abs(p.reduce((sum,a,i)=>{const b=p[(i+1)%p.length];return sum+a.x*b.z-b.x*a.z;},0))/2;
+function clip(points:Point[],axis:'x'|'z',bound:number,side:number) {
+  const output:Point[]=[];
+  for(let i=0;i<points.length;i++) {
+    const a=points[i],b=points[(i+1)%points.length],insideA=side*(a[axis]-bound)>=0,insideB=side*(b[axis]-bound)>=0;
+    if(insideA) output.push(a);
+    if(insideA!==insideB) {const t=(bound-a[axis])/(b[axis]-a[axis]);output.push({x:a.x+t*(b.x-a.x),z:a.z+t*(b.z-a.z)});}
+  }
+  return output;
+}
 function meshBounds(mesh:Mesh) {
   mesh.computeWorldMatrix(true);
   const b=mesh.getBoundingInfo().boundingBox;
@@ -46,7 +57,17 @@ export function auditWorkstation(input:PlannerConfig=freshConfig()) {
   }
   const deskBounds=range(footprint(desk,config)),mainBounds=range(main.flatMap(m=>footprint(m,config))),workBounds=range(work.flatMap(m=>footprint(m,config)));
   const mainEndX=deskBounds.minX+desk.cornerDesk!.worktopDepth,returnStartZ=deskBounds.maxZ-desk.cornerDesk!.returnWidth!;
-  assert.ok(mainBounds.minZ>=deskBounds.minZ && mainBounds.maxZ<=deskBounds.maxZ && mainBounds.minX>=deskBounds.minX && mainBounds.maxX<=mainEndX,'Main four must fit the actual main strip');
+  for(const screen of main) {
+    const points=footprint(screen,config);
+    const supportedArea=furnitureFootprints(desk).reduce((sum,part)=>{
+      let p=clip(points,'x',desk.position.x+part.x-part.width/2,1);
+      p=clip(p,'x',desk.position.x+part.x+part.width/2,-1);
+      p=clip(p,'z',desk.position.z+part.z-part.depth/2,1);
+      p=clip(p,'z',desk.position.z+part.z+part.depth/2,-1);
+      return sum+area(p);
+    },0);
+    assert.ok(Math.abs(supportedArea-area(points))<.000001,`${screen.id} must stay above the unchanged return/main surface`);
+  }
   assert.ok(workBounds.minX>=deskBounds.minX && workBounds.maxX<=deskBounds.maxX && workBounds.minZ>=returnStartZ && workBounds.maxZ<=deskBounds.maxZ,'Work pair must remain above the right return');
   const gaps=[...main.slice(1).map((m,i)=>gap(footprint(main[i],config),footprint(m,config))),gap(footprint(work[0],config),footprint(work[1],config))];
   assert.ok(gaps.every(g=>g>=.02 && g<=.03),'Actual nearest casing gaps, including thickness, must be 20–30 mm');
@@ -94,7 +115,7 @@ export function auditWorkstation(input:PlannerConfig=freshConfig()) {
     const ac=config.room.airConditioner!;
     return {
       units:'meters',monitors:[...main,...work].map(m=>({id:m.id,...m.dimensions,position:worldTransform(m,config.furniture).position,rotation:worldTransform(m,config.furniture).rotation})),
-      main:{straightSum:main.reduce((n,m)=>n+m.dimensions.width,0)+.025*3,projectedSpan:mainBounds.maxZ-mainBounds.minZ,remaining:desk.dimensions.depth-(mainBounds.maxZ-mainBounds.minZ),leftClearance:mainBounds.minZ-deskBounds.minZ,rightClearance:deskBounds.maxZ-mainBounds.maxZ},
+      main:{projectedSpan:mainBounds.maxZ-mainBounds.minZ,remaining:desk.dimensions.depth-(mainBounds.maxZ-mainBounds.minZ),returnTipClearance:deskBounds.maxX-range(footprint(main[0],config)).maxX,southClearance:mainBounds.minZ-deskBounds.minZ,rightClearance:deskBounds.maxZ-mainBounds.maxZ},
       work:{span:workBounds.maxX-workBounds.minX,returnSpan:desk.dimensions.width,endClearances:[workBounds.minX-deskBounds.minX,deskBounds.maxX-workBounds.maxX]},
       nearestHousingGaps:gaps,
       laptop:{rawCorner:{width:desk.cornerDesk!.worktopDepth,depth:desk.cornerDesk!.returnWidth},clearCorner:{...corner,width:corner.maxX-corner.minX,depth:corner.maxZ-corner.minZ},rotatedEnvelope:{width:laptopBounds.maxX-laptopBounds.minX,depth:laptopBounds.maxZ-laptopBounds.minZ},position:worldTransform(laptop,config.furniture).position,openingAngle:laptop.laptop!.openingAngle,verticalMonitorClearance:work[0].position.y+worldTransform(get('work-zone'),config.furniture).position.y-(worldTransform(laptop,config.furniture).position.y+laptop.dimensions.height)},

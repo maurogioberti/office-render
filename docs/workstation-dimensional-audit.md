@@ -1,5 +1,7 @@
 # Workstation dimensional audit
 
+**Placement update:** the verified hardware dimensions and locked geometry below remain unchanged. The later [AC-side position correction](workstation-position/README.md) supersedes this report's personal-monitor positions, span occupancy and laptop free-corner measurements. `npm run audit` checks the current corrected placement; the figures below record the original v12 audit.
+
 All distances are meters unless stated otherwise. Run `npm run audit` to recompute the measurements and reject a dimensional conflict. This audit uses actual Babylon mesh bounds, unscaled monitor housings, rotated equipment footprints, and the existing mounting-arm geometry. It is a geometric fit check, not a measurement of the unidentified physical hardware.
 
 ## Locked geometry

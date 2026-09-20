@@ -8,7 +8,7 @@ import { validateConfig } from '../src/config/storage';
 
 const ids=['monitor-portrait','monitor-left','monitor-center','monitor-right','work-monitor-left','work-monitor-right'];
 
-test('full-size displays retain aligned centers and separate four-plus-two sources with 25 mm within-group gaps', () => {
+test('full-size displays retain aligned centers and separate four-plus-two sources with close casing gaps', () => {
   const config=validateConfig(freshConfig());
   const screens=ids.map(id=>config.furniture.find(f=>f.id===id)!);
   const edge=(index:number,side:number)=>{
@@ -22,7 +22,7 @@ test('full-size displays retain aligned centers and separate four-plus-two sourc
     assert.equal(screen.monitor!.sourceId,i<4?'pc':'work-laptop');
     if(i===0 || i===4) continue;
     const a=edge(i-1,1),b=edge(i,-1);
-    assert.ok(Math.abs(Math.hypot(a.x-b.x,a.z-b.z)-.025)<.001,`Gap ${i}/${i+1} stays at 2.5 cm within its workstation`);
+    assert.ok(Math.abs(Math.hypot(a.x-b.x,a.z-b.z)-(i<4?.04:.025))<.001,`Gap ${i}/${i+1} preserves edge-center separation (nearest casing gaps verified by the geometry audit)`);
   }
   for(let i=0;i<bodies.length;i++) for(let j=i+1;j<bodies.length;j++) assert.equal(rectanglesOverlap(bodies[i],bodies[j]),false,'No case overlap');
   const laptop=config.furniture.find(f=>f.id==='work-laptop')!,chair=config.furniture.find(f=>f.id==='chair')!;

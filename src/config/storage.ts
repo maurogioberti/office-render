@@ -8,8 +8,9 @@ import { monitorMountGeometry, wallMountFootprints } from '../furniture/wallMoun
 import { architectureConflict, itemFitsRoom, obstacles, rectanglesOverlap } from '../navigation/collision';
 import { airConditionerObstacle } from '../architecture/airConditionerLayout';
 
-// Revision 12 audits full-size housings on the locked desk and restores the split 4+2.
-export const STORAGE_KEY = 'roomwork.office.v12';
+// Revision 13 relocates only the personal screens and their wall anchors to the AC-side return.
+export const STORAGE_KEY = 'roomwork.office.v13';
+export const POSITION_PREVIOUS_STORAGE_KEY = 'roomwork.office.v12';
 export const AUDIT_PREVIOUS_STORAGE_KEY = 'roomwork.office.v11';
 export const PANORAMA_PREVIOUS_STORAGE_KEY = 'roomwork.office.v10';
 export const SPACING_PREVIOUS_STORAGE_KEY = 'roomwork.office.v9';
@@ -163,6 +164,16 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
       }
       return { config: validateConfig(input) };
     }
+    const previousPosition=localStorage.getItem(POSITION_PREVIOUS_STORAGE_KEY);
+    if(previousPosition) {
+      const original=validateConfig(JSON.parse(previousPosition));
+      try {
+        const config=relocatePersonalWorkstation(original),persisted=saveConfig(config);
+        return {config,warning:persisted?'Personal screens repositioned at the AC-side return. Desk, equipment sizes, laptop and tower unchanged. Previous layout backed up.':'Personal screens repositioned. Export to save; browser storage is unavailable.'};
+      } catch(error) {
+        return {config:original,warning:`Personal screen correction could not fit this saved layout: ${(error as Error).message} Your existing scene was kept unchanged.`};
+      }
+    }
     const previousAudit=localStorage.getItem(AUDIT_PREVIOUS_STORAGE_KEY);
     if(previousAudit) {
       const original=validateConfig(JSON.parse(previousAudit));
@@ -221,6 +232,36 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
     }
     return { config: freshConfig() };
   } catch { return { config: freshConfig(), warning: 'The saved layout could not be loaded. Starting with the original layout.' }; }
+}
+
+/** Position-only correction: relocate four screens and their anchors, never their dimensions. */
+export function relocatePersonalWorkstation(input: unknown): PlannerConfig {
+  const config=validateConfig(input),defaults=freshConfig();
+  const desk=config.furniture.find(f=>f.id==='desk'),reference=defaults.furniture.find(f=>f.id==='desk')!;
+  for(const key of ['dimensions','position','rotation','cornerDesk'] as const) {
+    if(JSON.stringify(desk?.[key])!==JSON.stringify(reference[key])) fail('The saved desk differs from the locked placement reference.');
+  }
+  for(const source of defaults.furniture.filter(f=>f.monitor?.mount==='wall')) {
+    const item=config.furniture.find(f=>f.id===source.id);
+    if(!item?.monitor?.wallMount || item.parentId) fail(`Missing independent wall-mounted screen: ${source.id}.`);
+    item!.position.x=source.position.x;item!.position.z=source.position.z;item!.rotation=source.rotation;
+    item!.monitor!.wallMount!.wall=source.monitor!.wallMount!.wall;
+    item!.monitor!.wallMount!.offset=source.monitor!.wallMount!.offset;
+  }
+  const bodies=obstacles(config).filter(o=>!o.support);
+  const personalIds=new Set(defaults.furniture.filter(f=>f.monitor?.mount==='wall').map(f=>f.id));
+  for(const body of bodies.filter(o=>personalIds.has(o.id))) {
+    const hit=bodies.find(o=>o.id!==body.id && rectanglesOverlap(body,o));
+    if(hit) fail(`${body.id} would intersect ${hit.id}.`);
+  }
+  const laptop=bodies.find(o=>o.id==='work-laptop');
+  if(laptop) {
+    const column={...laptop,bottom:-Infinity,top:Infinity};
+    for(const screen of config.furniture.filter(f=>personalIds.has(f.id))) {
+      if(wallMountFootprints(screen,config.room).some(p=>rectanglesOverlap(column,p))) fail(`${screen.id}'s relocated arm would obstruct the unchanged laptop.`);
+    }
+  }
+  return validateConfig(config);
 }
 
 /** One-time audit correction. Custom desk geometry is never silently replaced or adapted. */

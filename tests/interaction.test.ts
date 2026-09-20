@@ -30,11 +30,11 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
   const field=(selector:string,value:string)=>{
     const input=dom.document.querySelector(selector) as any; assert.ok(input,selector); input.value=value; input.dispatchEvent(new dom.Event('change',{bubbles:true}));
   };
-  const saved=()=>JSON.parse(dom.localStorage.getItem('roomwork.office.v12')!) as ReturnType<typeof freshConfig>;
+  const saved=()=>JSON.parse(dom.localStorage.getItem('roomwork.office.v13')!) as ReturnType<typeof freshConfig>;
   try {
     assert.equal(dom.localStorage.getItem('roomwork.office.v7'),legacyJSON,'Original browser save remains intact');
     assert.deepEqual(saved().room,legacy.room,'The approved room is preserved exactly');
-    assert.ok(saved().furniture.filter(f=>f.monitor?.mount==='wall').filter(f=>f.monitor!.wallMount!.wall==='west').length===4,'Personal monitors occupy the main working wall');
+    assert.ok(saved().furniture.filter(f=>f.monitor?.mount==='wall').filter(f=>f.monitor!.wallMount!.wall==='west').length===2,'Personal monitors occupy the main working wall');
     assert.equal(dom.document.querySelector('[data-group="dimensions"]')!.getAttribute('data-field'),'depth','Main run appears first in the inspector');
     assert.equal(dom.document.querySelector('.object-title h2')!.textContent,'Floating wraparound desk');
     assert.equal(dom.document.querySelectorAll('.object-row').length,11);
@@ -108,8 +108,8 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
     field('[data-group="wallMount"][data-field="maxReach"]','0.10');
     assert.equal(saved().furniture.find((f:any)=>f.id==='monitor-left').monitor.wallMount.maxReach,.65);
     assert.match(dom.document.querySelector('#toast')!.textContent!,/wall arm reach/);
-    field('[data-group="wallMount"][data-field="offset"]','-0.52');
-    assert.equal(saved().furniture.find((f:any)=>f.id==='monitor-left').monitor.wallMount.offset,-.52);
+    field('[data-group="wallMount"][data-field="offset"]','-1.27');
+    assert.equal(saved().furniture.find((f:any)=>f.id==='monitor-left').monitor.wallMount.offset,-1.27);
     button('[data-action="settings"]');
     const form=dom.document.querySelector('#room-form')!;
     (form.querySelector('[name="height"]') as any).value='2.70';

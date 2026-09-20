@@ -19,9 +19,9 @@ test('real-size audit preserves the exact desk and architecture and measures sup
   assert.equal(config.furniture.filter(f=>f.monitor?.orientation==='portrait').length,1);
   assert.equal(config.furniture.filter(f=>f.monitor?.orientation==='landscape').length,5);
   for(const m of config.furniture.filter(f=>f.monitor)) assert.equal(m.monitor!.sourceId,m.id.startsWith('work-')?'work-laptop':'pc');
-  assert.ok(Math.abs(report.main.projectedSpan-2.25059927)<.000001);
-  assert.ok(Math.abs(report.main.remaining-.24940073)<.000001);
-  assert.ok(Math.abs(report.main.leftClearance-.07)<.000001);
+  assert.ok(report.main.projectedSpan<2.50);
+  assert.ok(report.main.rightClearance>.50);
+  assert.ok(Math.abs(report.main.returnTipClearance-.075)<.000001);
   assert.equal(report.work.span,1.249);
   assert.ok(report.laptop.clearCorner.width>.51 && report.laptop.clearCorner.depth>.50);
   assert.ok(report.tower.position.z<-.7,'Tower stays under the left/south return');

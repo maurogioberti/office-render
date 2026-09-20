@@ -21,7 +21,7 @@ test('workstation redesign preserves architecture and finishes while restoring b
   assert.deepEqual(before,snapshot,'Migration must not mutate the original backup');
   assert.deepEqual(after.room,before.room);
   assert.equal(after.furniture.find(f=>f.id==='monitor-right')!.color,'#3b403d');
-  assert.ok(after.furniture.filter(f=>f.monitor?.mount==='wall').filter(f=>f.monitor!.wallMount!.wall==='west').length===4);
+  assert.ok(after.furniture.filter(f=>f.monitor?.mount==='wall').filter(f=>f.monitor!.wallMount!.wall==='west').length===2);
   const desk=after.furniture.find(f=>f.id==='desk')!;
   assert.deepEqual(desk.dimensions,{width:1.3,height:.76,depth:2.5});
   assert.equal(desk.cornerDesk!.mainRun,'depth');

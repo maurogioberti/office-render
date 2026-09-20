@@ -1,0 +1,410 @@
+{
+  "version": 2,
+  "room": {
+    "length": 3.8,
+    "width": 2.6,
+    "height": 2.65,
+    "heightConfirmed": false,
+    "wallThickness": 0.12,
+    "wallFinishes": {
+      "north": {
+        "color": "#eeeae0",
+        "texture": "plaster",
+        "sheen": 0.06
+      },
+      "south": {
+        "color": "#eeeae0",
+        "texture": "plaster",
+        "sheen": 0.06
+      },
+      "east": {
+        "color": "#eeeae0",
+        "texture": "plaster",
+        "sheen": 0.06
+      },
+      "west": {
+        "color": "#eeeae0",
+        "texture": "plaster",
+        "sheen": 0.06
+      }
+    },
+    "baseboardLED": {
+      "enabled": true,
+      "color": "#ff3030",
+      "intensity": 0.18,
+      "glow": 0.3
+    },
+    "airConditioner": {
+      "enabled": true,
+      "wall": "south",
+      "offset": -0.3,
+      "bottom": 1.85,
+      "width": 0.66,
+      "height": 0.43,
+      "depth": 0.6,
+      "interiorProjection": 0.18,
+      "trimWidth": 0.025,
+      "color": "#d8d5c8",
+      "louverYaw": 15
+    },
+    "openings": [
+      {
+        "id": "window",
+        "kind": "window",
+        "wall": "south",
+        "offset": 0.7,
+        "width": 0.95,
+        "height": 1.35,
+        "sill": 1.12,
+        "confirmed": false,
+        "windowDetail": {
+          "frameColor": "#4c4636",
+          "frameWidth": 0.055,
+          "frameDepth": 0.1,
+          "housingHeight": 0.24,
+          "slatPitch": 0.035,
+          "shutterClosed": true
+        }
+      },
+      {
+        "id": "door",
+        "kind": "door",
+        "wall": "east",
+        "offset": -0.66,
+        "width": 0.82,
+        "height": 2.05,
+        "sill": 0,
+        "confirmed": false
+      }
+    ],
+    "beams": [
+      {
+        "id": "window-soffit",
+        "enabled": true,
+        "wall": "south",
+        "offset": 0,
+        "length": 3.8,
+        "projection": 0.4,
+        "drop": 0.16
+      },
+      {
+        "id": "opposite-door-soffit",
+        "enabled": true,
+        "wall": "west",
+        "offset": 0,
+        "length": 2.6,
+        "projection": 0.4,
+        "drop": 0.16
+      }
+    ],
+    "cornerFeatures": [
+      {
+        "id": "corner-step",
+        "enabled": true,
+        "corner": "south-west",
+        "width": 0.24,
+        "depth": 0.2,
+        "height": 2.49
+      }
+    ]
+  },
+  "furniture": [
+    {
+      "id": "desk",
+      "name": "Floating wraparound desk",
+      "kind": "desk",
+      "dimensions": {
+        "width": 1.3,
+        "height": 0.76,
+        "depth": 2.5
+      },
+      "cornerDesk": {
+        "worktopDepth": 0.72,
+        "mainRun": "depth",
+        "shape": "rect-c",
+        "returnWidth": 0.62,
+        "floating": true,
+        "cornerNotch": {
+          "width": 0.23,
+          "depth": 0.19
+        }
+      },
+      "position": {
+        "x": -1.21,
+        "y": 0,
+        "z": -0.01
+      },
+      "rotation": 0,
+      "color": "#bf9b72",
+      "visible": true
+    },
+    {
+      "id": "chair",
+      "name": "Ergonomic chair",
+      "kind": "chair",
+      "dimensions": {
+        "width": 0.64,
+        "height": 1.15,
+        "depth": 0.64
+      },
+      "position": {
+        "x": -0.62,
+        "y": 0,
+        "z": -0.1
+      },
+      "rotation": -90,
+      "color": "#535c52",
+      "visible": true
+    },
+    {
+      "id": "pc",
+      "name": "Desktop PC",
+      "kind": "pc",
+      "parentId": "desk",
+      "dimensions": {
+        "width": 0.22,
+        "height": 0.45,
+        "depth": 0.42
+      },
+      "position": {
+        "x": 0.29,
+        "y": 0,
+        "z": -0.93
+      },
+      "rotation": 180,
+      "color": "#383e3d",
+      "visible": true
+    },
+    {
+      "id": "monitor-left",
+      "name": "Samsung 27 · left",
+      "kind": "monitor",
+      "dimensions": {
+        "width": 0.612,
+        "height": 0.36,
+        "depth": 0.052
+      },
+      "monitor": {
+        "brand": "Samsung",
+        "diagonalInches": 27,
+        "orientation": "landscape",
+        "mount": "wall",
+        "sourceId": "pc",
+        "bezel": 0.006,
+        "wallMount": {
+          "wall": "west",
+          "offset": -0.509778835,
+          "height": 1.295,
+          "maxReach": 0.65
+        }
+      },
+      "position": {
+        "x": -1.665134761,
+        "y": 1.115,
+        "z": -0.509778835
+      },
+      "rotation": -100,
+      "color": "#343c3b",
+      "visible": true
+    },
+    {
+      "id": "monitor-center",
+      "name": "Samsung 27 · center",
+      "kind": "monitor",
+      "dimensions": {
+        "width": 0.612,
+        "height": 0.36,
+        "depth": 0.052
+      },
+      "monitor": {
+        "brand": "Samsung",
+        "diagonalInches": 27,
+        "orientation": "landscape",
+        "mount": "wall",
+        "sourceId": "pc",
+        "bezel": 0.006,
+        "wallMount": {
+          "wall": "west",
+          "offset": 0.122477205,
+          "height": 1.295,
+          "maxReach": 0.65
+        }
+      },
+      "position": {
+        "x": -1.720449997,
+        "y": 1.115,
+        "z": 0.122477205
+      },
+      "rotation": -90,
+      "color": "#343c3b",
+      "visible": true
+    },
+    {
+      "id": "monitor-right",
+      "name": "Samsung 27 · right",
+      "kind": "monitor",
+      "dimensions": {
+        "width": 0.612,
+        "height": 0.36,
+        "depth": 0.052
+      },
+      "monitor": {
+        "brand": "Samsung",
+        "diagonalInches": 27,
+        "orientation": "landscape",
+        "mount": "wall",
+        "sourceId": "pc",
+        "bezel": 0.006,
+        "wallMount": {
+          "wall": "west",
+          "offset": 0.754733245,
+          "height": 1.295,
+          "maxReach": 0.65
+        }
+      },
+      "position": {
+        "x": -1.665134761,
+        "y": 1.115,
+        "z": 0.754733245
+      },
+      "rotation": -80,
+      "color": "#343c3b",
+      "visible": true
+    },
+    {
+      "id": "monitor-portrait",
+      "name": "Samsung 27 · portrait",
+      "kind": "monitor",
+      "dimensions": {
+        "width": 0.36,
+        "height": 0.612,
+        "depth": 0.052
+      },
+      "monitor": {
+        "brand": "Samsung",
+        "diagonalInches": 27,
+        "orientation": "portrait",
+        "mount": "wall",
+        "sourceId": "pc",
+        "bezel": 0.006,
+        "wallMount": {
+          "wall": "west",
+          "offset": -1.009404056,
+          "height": 1.295,
+          "maxReach": 0.65
+        }
+      },
+      "position": {
+        "x": -1.56,
+        "y": 0.989,
+        "z": -1.009404056
+      },
+      "rotation": -105,
+      "color": "#343c3b",
+      "visible": true
+    },
+    {
+      "id": "work-laptop",
+      "name": "Work zone · laptop",
+      "kind": "laptop",
+      "parentId": "desk",
+      "onDesktop": true,
+      "dimensions": {
+        "width": 0.36,
+        "height": 0.25,
+        "depth": 0.3
+      },
+      "position": {
+        "x": -0.19,
+        "y": 0.76,
+        "z": 0.895
+      },
+      "rotation": -35,
+      "color": "#697175",
+      "visible": true,
+      "laptop": {
+        "openingAngle": 120,
+        "poweredOn": true
+      }
+    },
+    {
+      "id": "work-zone",
+      "name": "Work zone · dual monitor arm",
+      "kind": "work-zone",
+      "parentId": "desk",
+      "onDesktop": true,
+      "dimensions": {
+        "width": 1.18,
+        "height": 0.76,
+        "depth": 0.74
+      },
+      "position": {
+        "x": 0,
+        "y": 0.72,
+        "z": 0.9099999999999999
+      },
+      "rotation": 0,
+      "color": "#383e3d",
+      "visible": true,
+      "workZone": {
+        "surfaceOffset": 0.04,
+        "columnHeight": 0.46,
+        "armReach": 0.65
+      }
+    },
+    {
+      "id": "work-monitor-left",
+      "name": "Work · Samsung 27 · left",
+      "kind": "monitor",
+      "parentId": "work-zone",
+      "dimensions": {
+        "width": 0.612,
+        "height": 0.36,
+        "depth": 0.052
+      },
+      "position": {
+        "x": -0.3185,
+        "y": 0.395,
+        "z": 0.245
+      },
+      "rotation": 0,
+      "color": "#343c3b",
+      "visible": true,
+      "monitor": {
+        "brand": "Samsung",
+        "diagonalInches": 27,
+        "orientation": "landscape",
+        "mount": "shared-arm",
+        "sourceId": "work-laptop",
+        "bezel": 0.006
+      }
+    },
+    {
+      "id": "work-monitor-right",
+      "name": "Work · Samsung 27 · right",
+      "kind": "monitor",
+      "parentId": "work-zone",
+      "dimensions": {
+        "width": 0.612,
+        "height": 0.36,
+        "depth": 0.052
+      },
+      "position": {
+        "x": 0.3185,
+        "y": 0.395,
+        "z": 0.245
+      },
+      "rotation": 0,
+      "color": "#343c3b",
+      "visible": true,
+      "monitor": {
+        "brand": "Samsung",
+        "diagonalInches": 27,
+        "orientation": "landscape",
+        "mount": "shared-arm",
+        "sourceId": "work-laptop",
+        "bezel": 0.006
+      }
+    }
+  ]
+}
