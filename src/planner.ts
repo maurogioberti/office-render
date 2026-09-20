@@ -1,5 +1,5 @@
 import { deskOutline } from './furniture/deskProfile';
-import { BoundingInfo, Color3, Color4, Engine, GizmoManager, Mesh, MeshBuilder, PointerEventTypes, Scene, Vector3 } from '@babylonjs/core';
+import { BoundingInfo, Color3, Color4, Engine, GizmoManager, Mesh, MeshBuilder, Observer, PointerEventTypes, Scene, Vector3 } from '@babylonjs/core';
 import { createWorkZone, freshConfig } from './config/office';
 import { History, loadConfig, saveConfig, validateConfig } from './config/storage';
 import type { FurnitureConfig, Mode, PlannerConfig, TransformTool } from './config/types';
@@ -17,6 +17,7 @@ import { createMeasurements } from './room/measurements';
 import { UI } from './ui/panel';
 import { freshLounge } from './config/lounge';
 import { createLounge } from './furniture/lounge';
+import {TV_STOPS} from './furniture/tvMotion';
 
 export class Planner {
   private config: PlannerConfig;
@@ -28,6 +29,7 @@ export class Planner {
   private architecture: Mesh[] = [];
   private furniture = new Map<string, FurnitureObject>();
   private lounge?: ReturnType<typeof createLounge>;
+  private tvAnimation:Observer<Scene>|null=null;
   private measurement!: ReturnType<typeof createMeasurements>;
   private lights: ReturnType<typeof createLighting>;
   private baseboards!: ReturnType<typeof createBaseboardLighting>;
@@ -106,6 +108,7 @@ export class Planner {
     this.measurement = createMeasurements(this.scene, this.config.room);
   }
   private buildFurniture() {
+    if(this.tvAnimation){this.scene.onBeforeRenderObservable.remove(this.tvAnimation);this.tvAnimation=null;}
     this.lounge?.dispose();this.lounge=createLounge(this.scene,this.config);
     this.gizmos.attachToMesh(null); this.selection?.dispose(); this.selection = null;
     disposeFurniture(this.furniture); this.furniture = createFurniture(this.scene, this.config.furniture, this.materials, this.config.room);
@@ -222,6 +225,9 @@ export class Planner {
     if(this.navigation.mode !== 'edit') return;
     const selected = this.selectedId ? this.furniture.get(this.selectedId) : undefined;
     switch(action) {
+      case 'tv-stored': this.moveTV(TV_STOPS.stored); return;
+      case 'tv-viewing': this.moveTV(TV_STOPS.viewing); return;
+      case 'tv-access': this.moveTV(TV_STOPS.access); return;
       case 'toggle-lounge': this.change(config=>{config.lounge??=freshLounge();config.lounge.visible=!config.lounge.visible;}); return;
       case 'lounge-daily': case 'lounge-sleeping': this.change(config=>{config.lounge??=freshLounge();config.lounge.visible=true;config.lounge.state=action==='lounge-daily'?'daily':'sleeping';}); return;
       case 'toggle-work-zone': this.change(config=>{
@@ -283,6 +289,23 @@ export class Planner {
       }
     }
     this.render();
+  }
+  private moveTV(target:number) {
+    if(this.tvAnimation||!this.config.lounge?.visible)return;
+    const start=this.config.lounge.tvProgress??TV_STOPS.viewing;
+    if(Math.abs(start-target)<.0001)return;
+    document.querySelectorAll<HTMLButtonElement>('[data-action^="tv-"]').forEach(b=>b.disabled=true);
+    let elapsed=0;const duration=Math.max(.6,Math.abs(target-start)*3.5);
+    this.tvAnimation=this.scene.onBeforeRenderObservable.add(()=>{
+      elapsed+=Math.min(.05,this.engine.getDeltaTime()/1000);
+      const t=Math.min(1,elapsed/duration),smooth=t*t*(3-2*t),progress=start+(target-start)*smooth;
+      this.lounge?.updateTV(progress);
+      this.navigation.setConfig({...this.config,lounge:{...this.config.lounge!,tvProgress:progress}});
+      if(t>=1){
+        this.scene.onBeforeRenderObservable.remove(this.tvAnimation);this.tvAnimation=null;
+        const next=structuredClone(this.config);next.lounge!.tvProgress=target;this.apply(next);
+      }
+    });
   }
   private keyboard(event: KeyboardEvent) {
     if (this.navigation.mode !== 'edit' || (event.target as HTMLElement).closest('input,select,textarea,[contenteditable="true"]') || document.querySelector('dialog[open]')) return;

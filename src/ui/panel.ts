@@ -136,7 +136,10 @@ export class UI {
         <button class="architecture-row" data-action="toggle-lounge" aria-pressed="${!!config.lounge?.visible}">${icon(config.lounge?.visible?'eye-off':'eye')}<span>${config.lounge?.visible?'Hide':'Show'} sofa + 50-inch TV</span></button>
         <button class="architecture-row" data-action="lounge-daily" aria-pressed="${config.lounge?.state==='daily'}">${icon('armchair')}<span>Compact L · closed</span></button>
         <button class="architecture-row" data-action="lounge-sleeping" aria-pressed="${config.lounge?.state==='sleeping'}">${icon('bed-double')}<span>Extend sleeper bed</span></button>
-        <p class="features-note">2.00 m sofa · TV parked below sill. Extended TV position not verified.</p>
+        <button class="architecture-row" data-action="tv-stored" ${!config.lounge?.visible?'disabled':''} aria-pressed="${config.lounge?.tvProgress===0}">${icon('panel-left-close')}<span>Store TV near wall</span></button>
+        <button class="architecture-row" data-action="tv-viewing" ${!config.lounge?.visible?'disabled':''} aria-pressed="${(config.lounge?.tvProgress??7/9)===7/9}">${icon('monitor')}<span>TV toward sofa</span></button>
+        <button class="architecture-row" data-action="tv-access" ${!config.lounge?.visible?'disabled':''} aria-pressed="${config.lounge?.tvProgress===1}">${icon('app-window')}<span>Move TV for window access</span></button>
+        <p class="features-note">50-inch TV · 1.05 m articulated arm. Viewing may overlap the window; use Window access to reach behind it.</p>
       </div>
       ${workLaptop ? `<button class="architecture-row" data-action="toggle-work-power" aria-pressed="${workPowered}">${icon('power')}<span>${workPowered ? 'Turn work setup off' : 'Turn work setup on'}</span></button><p class="features-note">Laptop + 2 work monitors. Personal PC stays on.</p>` : ''}
       ${workRoot ? `<button class="architecture-row" data-visibility="${esc(workRoot.id)}">${icon(workRoot.visible ? 'eye-off' : 'eye')}<span>${workRoot.visible ? 'Hide work monitor pair' : 'Show work monitor pair'}</span></button>` : ''}

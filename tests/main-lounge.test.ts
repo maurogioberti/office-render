@@ -8,8 +8,9 @@ import {createRoom} from '../src/room/geometry';
 import {createArchitecture} from '../src/architecture/features';
 import {createMaterials} from '../src/materials';
 import {obstacles,canStand,rectanglesOverlap} from '../src/navigation/collision';
-import {doorLeaf} from '../src/study/analysis';
+import {doorLeaf,route} from '../src/study/analysis';
 import {validateConfig} from '../src/config/storage';
+import {tvPose,tvMotionObstacles,solveTV,TV_MOUNT,TV_STOPS} from '../src/furniture/tvMotion';
 
 test('main lounge renders a full-size TV and sofa without changing the locked office',()=>{
   const config=freshConfig(),before=structuredClone(config);config.lounge=freshLounge();
@@ -27,20 +28,31 @@ test('main lounge renders a full-size TV and sofa without changing the locked of
   }finally{scene.dispose();engine.dispose();}
 });
 
-test('parked TV and plate clear the window, room and both trial inward door sweeps',()=>{
+test('TV mount remains on solid wall and every guided pose clears both trial inward door sweeps',()=>{
   const config=freshConfig();config.lounge=freshLounge();const tv=LOUNGE.tv;
   assert.ok(tv.anchor.x-tv.plateWidth/2>1.175);
-  assert.ok(tv.center.x+tv.width/2<config.room.length/2);
-  assert.ok(Math.abs(config.room.openings[0].sill-(tv.center.y+tv.height/2)-.055)<1e-8);
-  const added=obstacles(config).filter(o=>o.id.startsWith('lounge-tv'));
-  for(const hinge of ['south','north'] as const)for(let angle=0;angle<=90;angle+=.25)
-    for(const o of added)assert.equal(rectanglesOverlap(o,doorLeaf(config,hinge,angle)),false,`${hinge} door ${angle}`);
+  const leaves=(['south','north'] as const).flatMap(h=>Array.from({length:361},(_,i)=>doorLeaf(config,h,i/4)));
+  const fixed=obstacles(freshConfig());
+  for(let i=0;i<=900;i++){
+    const pose=tvPose(i/900),{end,elbow,reach}=solveTV(pose),parts=tvMotionObstacles(pose);
+    assert.ok(reach<=1.05+1e-8);
+    assert.ok(Math.abs(Math.hypot(elbow.x-TV_MOUNT.anchor.x,elbow.z-TV_MOUNT.anchor.z)-.70)<1e-8);
+    assert.ok(Math.abs(Math.hypot(elbow.x-end.x,elbow.z-end.z)-.35)<1e-8);
+    for(const o of parts){const r=o.rotation*Math.PI/180,halfZ=(Math.abs(Math.sin(r))*o.width+Math.abs(Math.cos(r))*o.depth)/2;
+      assert.ok(o.z-halfZ>=-config.room.width/2-1e-8,'Do not swing into the wall');
+      assert.ok(leaves.every(leaf=>!rectanglesOverlap({...o,width:o.width+.02,depth:o.depth+.02},leaf)),`Door needs 10 mm additional clearance at pose ${i}`);
+      assert.ok(fixed.every(item=>!rectanglesOverlap(o,item)),`Existing furniture conflict at pose ${i}`);
+    }
+    assert.ok(parts.slice(1).every(link=>!rectanglesOverlap(parts[0],link)),'Arm must stay behind the screen');
+  }
   const engine=new NullEngine(),scene=new Scene(engine);
   try{
     const materials=createMaterials(scene,config.room,false),room=createRoom(scene,config.room,materials);
     const architecture=createArchitecture(scene,config.room,materials,room),lounge=createLounge(scene,config);
-    for(const a of architecture.filter(m=>m.parent?.name==='window'))for(const b of lounge.meshes.filter(m=>m.name.startsWith('Lounge TV'))){
-      a.computeWorldMatrix(true);b.computeWorldMatrix(true);assert.equal(a.intersectsMesh(b,true),false,`${a.name} / ${b.name}`);
+    for(let i=0;i<=90;i++){lounge.updateTV(i/90);
+      for(const a of architecture.filter(m=>m.parent?.name==='window'))for(const b of lounge.meshes.filter(m=>m.name.startsWith('Lounge TV'))){
+        a.computeWorldMatrix(true);b.computeWorldMatrix(true);assert.equal(a.intersectsMesh(b,true),false,`${a.name} / ${b.name} at ${i}`);
+      }
     }
   }finally{scene.dispose();engine.dispose();}
 });
@@ -48,9 +60,18 @@ test('parked TV and plate clear the window, room and both trial inward door swee
 test('Walk Mode collides with visible sofa and TV; hiding lounge removes those obstacles',()=>{
   const config=freshConfig();config.lounge=freshLounge();
   assert.equal(canStand(.5,.8,config.room,obstacles(config)),false);
-  assert.equal(canStand(1.28,-1.08,config.room,obstacles(config),.10),false);
-  assert.equal(canStand(.5,-.6,config.room,obstacles(config)),true);
+  assert.equal(canStand(.55,-.6,config.room,obstacles(config),.10),false);
+  assert.equal(canStand(.1,-.4,config.room,obstacles(config),.15),true);
   config.lounge.state='sleeping';assert.equal(canStand(.5,.05,config.room,obstacles(config)),false);
   config.lounge.visible=false;assert.equal(canStand(.5,.8,config.room,obstacles(config)),true);
   assert.ok(!obstacles(config).some(o=>o.id.startsWith('lounge')));
+});
+
+test('window-access pose provides a walkable approach behind the angled screen',()=>{
+  const config=freshConfig();config.lounge={...freshLounge(),tvProgress:TV_STOPS.access};
+  for(const hinge of ['south','north'] as const){
+    const objects=[...obstacles(config).filter(o=>o.bottom<1.8&&o.top>.08),doorLeaf(config,hinge,90)];
+    const access=route(config,objects,{x:.30,z:-1.0});
+    assert.ok(access.width>=.55,`Window approach: ${access.width}`);
+  }
 });

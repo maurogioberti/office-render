@@ -36,6 +36,7 @@ export function validateConfig(input: unknown): PlannerConfig {
   const room = config.room;
   if (config.version !== 2 || !room || !Array.isArray(config.furniture)) fail('This is not a supported Roomwork layout.');
   if(config.lounge && (typeof config.lounge.visible!=='boolean'||!['daily','sleeping'].includes(config.lounge.state))) fail('Invalid lounge visibility or sofa state.');
+  if(config.lounge?.tvProgress!==undefined&&!finite(config.lounge.tvProgress,0,1))fail('TV arm position must be between stored and window access.');
   if (!finite(room.length, 1, 30) || !finite(room.width, 1, 30) || !finite(room.height, 1.9, 8) || !finite(room.wallThickness, .05, .6)) fail('Room dimensions are outside the supported range.');
   if (typeof room.heightConfirmed !== 'boolean' || !Array.isArray(room.openings) || !Array.isArray(room.beams) || !Array.isArray(room.cornerFeatures)) fail('Architecture configuration is incomplete.');
   const led = room.baseboardLED;
