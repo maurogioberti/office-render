@@ -72,15 +72,11 @@ test('v7 browser correction restores removed work screens and laptop without cha
 });
 
 
-test('personal station restores the exact approved west-wall poses and anchors', () => {
-  const previous = JSON.parse(readFileSync(new URL('./fixtures/layout-v7.json', import.meta.url), 'utf8'));
+test('monitor correction preserves the approved desk, room, chair and PC exactly', () => {
+  const previous = JSON.parse(readFileSync(new URL('./fixtures/layout-v8.json', import.meta.url), 'utf8'));
   const current = freshConfig();
-  assert.deepEqual(current.room, previous.room, 'No architectural values change during this correction');
-  for (const item of current.furniture.filter(f => f.monitor?.mount === 'wall')) {
-    const approved = previous.furniture.find((f: {id: string}) => f.id === item.id);
-    assert.deepEqual(item.position, approved.position);
-    assert.equal(item.rotation, approved.rotation);
-    assert.deepEqual(item.monitor!.wallMount, approved.monitor.wallMount);
-    assert.equal(item.monitor!.wallMount!.wall, 'west');
+  assert.deepEqual(current.room, previous.room);
+  for (const id of ['desk','chair','pc']) {
+    assert.deepEqual(current.furniture.find(f=>f.id===id),previous.furniture.find((f: {id: string})=>f.id===id));
   }
 });

@@ -30,11 +30,11 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
   const field=(selector:string,value:string)=>{
     const input=dom.document.querySelector(selector) as any; assert.ok(input,selector); input.value=value; input.dispatchEvent(new dom.Event('change',{bubbles:true}));
   };
-  const saved=()=>JSON.parse(dom.localStorage.getItem('roomwork.office.v8')!) as ReturnType<typeof freshConfig>;
+  const saved=()=>JSON.parse(dom.localStorage.getItem('roomwork.office.v10')!) as ReturnType<typeof freshConfig>;
   try {
     assert.equal(dom.localStorage.getItem('roomwork.office.v7'),legacyJSON,'Original browser save remains intact');
     assert.deepEqual(saved().room,legacy.room,'The approved room is preserved exactly');
-    assert.ok(saved().furniture.filter(f=>f.monitor?.mount==='wall').every(f=>f.monitor!.wallMount!.wall==='west'),'Personal monitors occupy the main working wall');
+    assert.ok(saved().furniture.filter(f=>f.monitor?.mount==='wall').filter(f=>f.monitor!.wallMount!.wall==='west').length===2,'Personal monitors occupy the main working wall');
     assert.equal(dom.document.querySelector('[data-group="dimensions"]')!.getAttribute('data-field'),'depth','Main run appears first in the inspector');
     assert.equal(dom.document.querySelector('.object-title h2')!.textContent,'Floating wraparound desk');
     assert.equal(dom.document.querySelectorAll('.object-row').length,11);
@@ -120,15 +120,17 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
     button('[data-action="redo"]'); assert.equal(saved().room.baseboardLED.color,'#44aaff');
     button('[data-select="desk"]');
     field('[data-group="dimensions"][data-field="depth"]','2.40');
-    assert.equal(saved().furniture.find(f=>f.id==='desk')!.dimensions.depth,2.4);
+    assert.equal(saved().furniture.find(f=>f.id==='desk')!.dimensions.depth,2.5,'Shrinking beneath the north-edge clamp is rejected');
+    field('[data-group="dimensions"][data-field="depth"]','2.54');
+    assert.equal(saved().furniture.find(f=>f.id==='desk')!.dimensions.depth,2.54);
     button('[data-select="work-zone"]'); button('[data-action="reset-object"]');
-    assert.ok(Math.abs(saved().furniture.find(f=>f.id==='work-zone')!.position.z+.86)<1e-8,'Reset keeps the clamp on the resized desktop edge');
+    assert.ok(Math.abs(saved().furniture.find(f=>f.id==='work-zone')!.position.z-.93)<1e-8,'Reset keeps the clamp on the resized desktop edge: '+dom.document.querySelector('#toast')!.textContent);
     field('[data-group="workZone"][data-field="columnHeight"]','0.50');
     assert.equal(saved().furniture.find(f=>f.id==='work-zone')!.workZone!.columnHeight,.5);
     field('[data-group="workZone"][data-field="armReach"]','0.70');
     assert.equal(saved().furniture.find(f=>f.id==='work-zone')!.workZone!.armReach,.7);
     button('[data-action="chair-work"]');
-    assert.ok(Math.abs(saved().furniture.find(f=>f.id==='chair')!.position.x+.71)<1e-8);
+    assert.ok(Math.abs(saved().furniture.find(f=>f.id==='chair')!.position.x+.89)<1e-8);
     button('[data-action="chair-personal"]');
     assert.deepEqual(saved().furniture.find(f=>f.id==='chair')!.position,{x:-.62,y:0,z:-.1});
     button('[data-select="work-laptop"]');
@@ -147,13 +149,13 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
     assert.equal(saved().furniture.find(f=>f.id==='work-laptop')!.laptop!.openingAngle,110,'Undo restores the customized removable group');
     button('[data-action="redo"]'); assert.equal(saved().furniture.length,8);
     button('[data-action="toggle-work-zone"]'); assert.equal(saved().furniture.length,11);
-    assert.ok(Math.abs(saved().furniture.find(f=>f.id==='work-zone')!.position.z+.86)<1e-8,'Adding a setup uses the current desk dimensions');
+    assert.ok(Math.abs(saved().furniture.find(f=>f.id==='work-zone')!.position.z-.93)<1e-8,'Adding a setup uses the current desk dimensions');
     const renamed=saved();
     renamed.furniture.find(f=>f.kind==='work-zone')!.id='company-zone';
     renamed.furniture.filter(f=>f.parentId==='work-zone').forEach(f=>{f.parentId='company-zone';});
     (planner as any).ui.actions.import(JSON.stringify(renamed));
     button('[data-select="company-zone"]'); button('[data-action="chair-work"]');
-    assert.ok(Math.abs(saved().furniture.find(f=>f.id==='chair')!.position.x+.71)<1e-8,'Chair action supports configured group identifiers');
+    assert.ok(Math.abs(saved().furniture.find(f=>f.id==='chair')!.position.x+.89)<1e-8,'Chair action supports configured group identifiers');
     button('[data-action="toggle-work-zone"]');
     assert.equal(saved().furniture.length,8,'Removal targets the displayed group even with a customized identifier');
     button('[data-visibility="desk"]'); assert.equal(saved().furniture.find((f:any)=>f.id==='desk').visible,false);

@@ -148,14 +148,16 @@ test('four monitor cases form a separate, inward-angled array on the main wall',
   for (let i = 0; i < monitors.length; i++) for (let j = i + 1; j < monitors.length; j++) {
     assert.equal(rectanglesOverlap(monitors[i], monitors[j]), false, `${monitors[i].id} intersects ${monitors[j].id}`);
   }
-  const sequence = ['monitor-left', 'monitor-center', 'monitor-right', 'monitor-portrait'].map(id => monitors.find(m => m.id === id)!);
+  const sequence = ['monitor-portrait', 'monitor-left', 'monitor-center', 'monitor-right'].map(id => monitors.find(m => m.id === id)!);
   for (let i = 1; i < sequence.length; i++) {
     const gap = edgeGap(sequence[i - 1], sequence[i]);
     assert.ok(gap > .001 && gap < .15, `${sequence[i-1].id} and ${sequence[i].id} should form one usable array; gap is ${gap} m`);
   }
   const landscape = config.furniture.filter(f => f.monitor?.mount === 'wall' && f.monitor.orientation === 'landscape');
-  assert.ok(landscape.every(item => item.monitor!.wallMount!.wall === 'west'), 'The long right-side run holds the main array');
-  assert.equal(landscape[1].rotation, -90, 'The center screen faces directly into the main chair bay');
+  assert.deepEqual(landscape.map(item=>item.monitor!.wallMount!.wall),['south','west','west'], 'The array wraps from the AC end into the main west-wall run');
+  const center=landscape[1],chair=config.furniture.find(f=>f.id==='chair')!;
+  const facing=Math.atan2(center.position.x-chair.position.x,center.position.z-chair.position.z)*180/Math.PI;
+  assert.ok(Math.abs(center.rotation-facing)<10,'The center screen faces the main chair within ten degrees');
   assert.ok(landscape[0].rotation < -90 && landscape[2].rotation > -90, 'The side screens angle inward around the centered workstation');
   assert.ok(Math.abs(landscape[0].rotation - landscape[2].rotation) >= 60);
 });

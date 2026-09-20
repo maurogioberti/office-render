@@ -8,8 +8,10 @@ import { monitorMountGeometry, wallMountFootprints } from '../furniture/wallMoun
 import { architectureConflict, itemFitsRoom, obstacles, rectanglesOverlap } from '../navigation/collision';
 import { airConditionerObstacle } from '../architecture/airConditionerLayout';
 
-// Revision 8 restores both workstations on a floating desk; architecture stays as saved.
-export const STORAGE_KEY = 'roomwork.office.v8';
+// Revision 10 tightens the monitor arc; only displays, arms and laptop are repositioned.
+export const STORAGE_KEY = 'roomwork.office.v10';
+export const SPACING_PREVIOUS_STORAGE_KEY = 'roomwork.office.v9';
+export const MONITOR_PREVIOUS_STORAGE_KEY = 'roomwork.office.v8';
 export const CORRECTION_PREVIOUS_STORAGE_KEY = 'roomwork.office.v7';
 export const WORKSTATION_PREVIOUS_STORAGE_KEY = 'roomwork.office.v6';
 export const AC_PREVIOUS_STORAGE_KEY = 'roomwork.office.v5';
@@ -157,6 +159,16 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
       }
       return { config: validateConfig(input) };
     }
+    const previousMonitors=localStorage.getItem(SPACING_PREVIOUS_STORAGE_KEY) ?? localStorage.getItem(MONITOR_PREVIOUS_STORAGE_KEY);
+    if(previousMonitors) {
+      const original=validateConfig(JSON.parse(previousMonitors));
+      try {
+        const config=alignWorkstations(original),persisted=saveConfig(config);
+        return {config,warning:persisted?'Monitor layout updated: portrait at the AC end, work pair and laptop together on the opposite return. Your previous layout is backed up.':'Monitor layout updated. Export to save; browser storage is unavailable.'};
+      } catch {
+        return {config:original,warning:'The monitor arrangement does not fit your edited desk. Your existing layout was kept unchanged.'};
+      }
+    }
     const previousWorkstation=localStorage.getItem(CORRECTION_PREVIOUS_STORAGE_KEY) ?? localStorage.getItem(WORKSTATION_PREVIOUS_STORAGE_KEY);
     if(previousWorkstation) {
       const original=validateConfig(JSON.parse(previousWorkstation));
@@ -195,6 +207,32 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
     }
     return { config: freshConfig() };
   } catch { return { config: freshConfig(), warning: 'The saved layout could not be loaded. Starting with the original layout.' }; }
+}
+
+/** Reposition only displays, their arms and laptop. Never replace the saved desk or room. */
+export function alignWorkstations(input: unknown): PlannerConfig {
+  const config=validateConfig(input),defaults=freshConfig();
+  const desk=config.furniture.find(f=>f.id==='desk');
+  if(!desk?.cornerDesk) fail('The workstation arrangement requires the existing corner desk.');
+  const dx=-(config.room.length-defaults.room.length)/2,dz=-(config.room.width-defaults.room.width)/2;
+  const workGroup=createWorkZone(desk!)[0];
+  const targets=defaults.furniture.filter(f=>f.monitor || f.id==='work-zone' || f.id==='work-laptop');
+  for(const source of targets) {
+    let item=config.furniture.find(f=>f.id===source.id);
+    if(!item) { item=structuredClone(source);config.furniture.push(item); }
+    item.position={...source.position};item.rotation=source.rotation;item.visible=true;
+    if(source.monitor?.mount==='wall') {
+      item.position.x+=dx;item.position.z+=dz;
+      item.monitor={...item.monitor!,wallMount:structuredClone(source.monitor.wallMount)};
+      item.monitor.wallMount!.offset+=['north','south'].includes(item.monitor.wallMount!.wall)?dx:dz;
+    } else if(source.id==='work-zone') {
+      item.parentId=desk!.id;item.position={...workGroup.position};
+    } else if(source.id==='work-laptop') {
+      item.parentId=desk!.id;item.onDesktop=true;
+      item.position={x:workGroup.position.x,y:desk!.dimensions.height,z:desk!.dimensions.depth/2-.44};
+    }
+  }
+  return validateConfig(config);
 }
 
 /** Furniture-only correction: preserve architecture, finishes and unrelated objects. */

@@ -135,7 +135,7 @@ test('four personal Samsung 27 inch panels retain three landscape orientations, 
   for(const m of monitors) {
     assert.equal(m.monitor!.brand,'Samsung'); assert.equal(m.monitor!.mount,'wall');
     const p=monitorPanel(m); assert.ok(Math.abs(Math.hypot(p.width,p.height)-27*.0254)<1e-8);
-    assert.equal(m.parentId,undefined); assert.equal(m.monitor!.wallMount!.wall,'west');
+    assert.equal(m.parentId,undefined); assert.equal(m.monitor!.wallMount!.wall,['monitor-left','monitor-portrait'].includes(m.id)?'south':'west');
   }
   const invalid=freshConfig(); invalid.furniture.find(f=>f.kind==='monitor')!.dimensions.width=.1;
   assert.throws(()=>validateConfig(invalid),/monitor envelope/);
