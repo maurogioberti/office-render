@@ -98,10 +98,10 @@ test('shared arms remain linked during nested desk, zone and live screen quatern
   } finally { scene.dispose(); engine.dispose(); }
 });
 
-test('enabling the optional dual arm keeps all six cases separate and the independent laptop on the return', () => {
+test('both zones are visible by default with six separate cases and a supported laptop', () => {
   const initial = freshConfig();
-  assert.equal(initial.furniture.find(item => item.id === 'work-zone')!.visible, false);
-  assert.equal(obstacles(initial).filter(item => item.id.startsWith('work-monitor') && !item.support).length, 0);
+  assert.equal(initial.furniture.find(item => item.id === 'work-zone')!.visible, true);
+  assert.equal(obstacles(initial).filter(item => item.id.startsWith('work-monitor') && !item.support).length, 2);
   initial.furniture.find(item => item.id === 'work-zone')!.visible = true;
   const config = validateConfig(initial), desk = config.furniture.find(item => item.id === 'desk')!;
   const zone = config.furniture.find(item => item.id === 'work-zone')!, laptop = config.furniture.find(item => item.kind === 'laptop')!;

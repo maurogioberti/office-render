@@ -1,6 +1,6 @@
 import type { FurnitureConfig, PlannerConfig } from '../config/types';
 
-/** Grow the L into the room while holding its rear corner and attached items in place. */
+/** Resize the desk into the room while holding its rear corner and attached items in place. */
 export function resizeCornerDesk(config: PlannerConfig, desk: FurnitureConfig, width: number, depth: number) {
   if (width===desk.dimensions.width && depth===desk.dimensions.depth) return;
   const dx=(width-desk.dimensions.width)/2, dz=(depth-desk.dimensions.depth)/2, r=desk.rotation*Math.PI/180;

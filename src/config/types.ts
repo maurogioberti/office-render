@@ -14,8 +14,8 @@ export type FurnitureConfig = {
   parentId?: string;
   /** Preserve the attachment's offset from its parent desk top when desk height changes. */
   onDesktop?: boolean;
-  /** L footprint occupies local -X and -Z sides. Outer runs use width/depth. */
-  cornerDesk?: { worktopDepth: number; mainRun?: 'width' | 'depth'; cornerNotch?: { width: number; depth: number } };
+  /** Legacy L or squared C, backed by local -X. Width/depth define the outer envelope. */
+  cornerDesk?: { shape?: 'l' | 'rect-c'; returnWidth?: number; floating?: boolean; worktopDepth: number; mainRun?: 'width' | 'depth'; cornerNotch?: { width: number; depth: number } };
   workZone?: { surfaceOffset: number; columnHeight: number; armReach: number };
   laptop?: { openingAngle: number };
   monitor?: { brand: string; diagonalInches: number; orientation: 'landscape' | 'portrait'; mount: 'arm' | 'stand' | 'wall' | 'shared-arm'; bezel: number;

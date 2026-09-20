@@ -7,10 +7,12 @@ export function furnitureFootprints(item: FurnitureConfig) {
   if (item.workZone) return [{ x: 0, z: depth/2-.07, width: .1, depth: .12 }];
   if (!item.cornerDesk) return [{ x: 0, z: 0, width, depth }];
   const t = item.cornerDesk.worktopDepth;
+  const endDepth = item.cornerDesk.shape === 'rect-c' ? item.cornerDesk.returnWidth ?? .62 : t;
   const runs = [
     { x: -width / 2 + t / 2, z: 0, width: t, depth },
-    { x: t / 2, z: -depth / 2 + t / 2, width: width - t, depth: t },
+    { x: t / 2, z: -depth / 2 + endDepth / 2, width: width - t, depth: endDepth },
   ];
+  if (item.cornerDesk.shape === 'rect-c') runs.push({ x: t / 2, z: depth / 2 - endDepth / 2, width: width - t, depth: endDepth });
   const notch = item.cornerDesk.cornerNotch;
   if (!notch || notch.width <= 0 || notch.depth <= 0) return runs;
   const cut = { minX: -width / 2, maxX: -width / 2 + notch.width, minZ: -depth / 2, maxZ: -depth / 2 + notch.depth };

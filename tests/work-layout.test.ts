@@ -16,19 +16,19 @@ function approvedLayout() {
   return validateConfig(config);
 }
 
-test('workstation redesign preserves architecture and finishes while shortening the window return', () => {
+test('workstation redesign preserves architecture and finishes while restoring both zones on a floating wraparound', () => {
   const before=approvedLayout(), snapshot=structuredClone(before), after=rebalanceWorkstation(before);
   assert.deepEqual(before,snapshot,'Migration must not mutate the original backup');
   assert.deepEqual(after.room,before.room);
   assert.equal(after.furniture.find(f=>f.id==='monitor-right')!.color,'#3b403d');
   assert.ok(after.furniture.filter(f=>f.monitor?.mount==='wall').every(f=>f.monitor!.wallMount!.wall==='west'));
   const desk=after.furniture.find(f=>f.id==='desk')!;
-  assert.deepEqual(desk.dimensions,{width:1.45,height:.76,depth:2.2});
+  assert.deepEqual(desk.dimensions,{width:1.3,height:.76,depth:2.5});
   assert.equal(desk.cornerDesk!.mainRun,'depth');
   assert.equal(desk.cornerDesk!.worktopDepth,.72);
   assert.equal(after.furniture.length,11);
   assert.deepEqual(rebalanceWorkstation(after),after,'Already upgraded layouts do not duplicate the second setup');
-  assert.equal(after.furniture.find(f=>f.id==='work-zone')!.visible,false);
+  assert.equal(after.furniture.find(f=>f.id==='work-zone')!.visible,true);
   removeFurnitureTree(after,'work-zone');
   assert.equal(after.furniture.find(f=>f.id==='work-laptop')!.parentId,'desk','The laptop survives optional pair removal');
   const imported=validateConfig(before);
@@ -60,7 +60,7 @@ test('work-zone support and display separation reject floating clamps, excessive
   invalid(c=>{c.furniture.find(f=>f.id==='work-zone')!.position.z+=.10;},/clamp at a desk edge/);
   invalid(c=>{c.furniture.find(f=>f.id==='work-zone')!.workZone!.armReach=.2;},/shared arm reach/);
   invalid(c=>{c.furniture.find(f=>f.id==='work-monitor-right')!.position.x=.29;},/would intersect/);
-  invalid(c=>{c.furniture.find(f=>f.id==='work-laptop')!.position.x+=1;},/laptop must fit/);
+  invalid(c=>{c.furniture.find(f=>f.id==='work-laptop')!.position.z+=.5;},/laptop must fit/i);
 });
 
 test('saved-layout upgrade falls back to the original scene if its corner feature needs a different cutout', () => {

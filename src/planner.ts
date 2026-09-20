@@ -1,3 +1,4 @@
+import { deskOutline } from './furniture/deskProfile';
 import { BoundingInfo, Color3, Color4, Engine, GizmoManager, Mesh, MeshBuilder, PointerEventTypes, Scene, Vector3 } from '@babylonjs/core';
 import { createWorkZone, freshConfig } from './config/office';
 import { History, loadConfig, saveConfig, validateConfig } from './config/storage';
@@ -134,13 +135,17 @@ export class Planner {
     if (!o || !o.root.isEnabled() || this.navigation.mode !== 'edit') return;
     const { width:w,depth:d } = o.config.dimensions, x = w/2+.012, z = d/2+.012;
     const t = o.config.cornerDesk?.worktopDepth;
-    const points = t ? [new Vector3(-x,.008,-z),new Vector3(x,.008,-z),new Vector3(x,.008,-z+t),new Vector3(-x+t,.008,-z+t),new Vector3(-x+t,.008,z),new Vector3(-x,.008,z),new Vector3(-x,.008,-z)]
+    let points = t ? [new Vector3(-x,.008,-z),new Vector3(x,.008,-z),new Vector3(x,.008,-z+t),new Vector3(-x+t,.008,-z+t),new Vector3(-x+t,.008,z),new Vector3(-x,.008,z),new Vector3(-x,.008,-z)]
       : [new Vector3(-x,.008,-z),new Vector3(x,.008,-z),new Vector3(x,.008,z),new Vector3(-x,.008,z),new Vector3(-x,.008,-z)];
     const notch=o.config.cornerDesk?.cornerNotch;
     if(notch) {
       points[0].x+=notch.width;
       points.pop();
       points.push(new Vector3(-x,.008,-z+notch.depth),new Vector3(-x+notch.width,.008,-z+notch.depth),points[0].clone());
+    }
+    if(o.config.cornerDesk?.shape === 'rect-c') {
+      points = deskOutline(o.config).map(p => new Vector3(p.x, .008, p.z));
+      points.push(points[0].clone());
     }
     const lines = MeshBuilder.CreateLines('Selected object footprint', { points }, this.scene);
     lines.color = Color3.FromHexString('#6c8555'); lines.isPickable = false; lines.parent = o.root; this.selection = lines;
@@ -182,7 +187,7 @@ export class Planner {
         else item.dimensions[field as keyof FurnitureConfig['dimensions']] = value;
         if (item.kind === 'desk' && field === 'height') config.furniture.filter(f=>f.parentId === item.id && (f.onDesktop || f.kind === 'monitor')).forEach(f=>{ f.position.y += value-oldHeight; });
       } else if(group === 'position' && ['x','y','z'].includes(field)) item.position[field as keyof FurnitureConfig['position']] = value;
-      else if(group === 'cornerDesk' && field === 'worktopDepth' && item.cornerDesk) item.cornerDesk.worktopDepth = value;
+      else if(group === 'cornerDesk' && (field === 'worktopDepth' || field === 'returnWidth') && item.cornerDesk) item.cornerDesk[field] = value;
       else if(group === 'cornerNotch' && (field==='width' || field==='depth') && item.cornerDesk?.cornerNotch) item.cornerDesk.cornerNotch[field]=value;
       else if(group === 'wallMount' && ['offset','height','maxReach'].includes(field) && item.monitor?.wallMount) item.monitor.wallMount[field as 'offset' | 'height' | 'maxReach'] = value;
       else if(group === 'workZone' && ['columnHeight','armReach'].includes(field) && item.workZone) item.workZone[field as 'columnHeight'|'armReach']=value;

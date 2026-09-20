@@ -5,6 +5,8 @@ import { box } from '../room/geometry';
 import { furnitureFootprints, monitorPanel } from './footprint';
 import { createWallMonitorArm } from './wallMounts';
 import { createSharedDeskArm } from './deskArm';
+import earcut from 'earcut';
+import { deskOutline } from './deskProfile';
 
 export type FurnitureObject = { config: FurnitureConfig; root: Mesh; meshes: Mesh[]; materials: StandardMaterial[] };
 
@@ -29,6 +31,33 @@ export function createFurniture(scene: Scene, configs: FurnitureConfig[], mats: 
     };
     switch (config.kind) {
       case 'desk': {
+        if (config.cornerDesk?.shape === 'rect-c') {
+          const top = MeshBuilder.ExtrudePolygon(`${config.id} continuous straight worktop`, {
+            shape: deskOutline(config).map(p => new Vector3(p.x, 0, p.z)), depth: .045,
+          }, scene, earcut);
+          top.parent = root; top.position.y = h; top.material = body; top.receiveShadows = true;
+          object.meshes.push(top);
+          if (config.cornerDesk.floating) {
+            const notch = config.cornerDesk.cornerNotch;
+            const start = -d / 2 + (notch?.depth ?? 0) + .04, end = d / 2 - .04;
+            const ledger = b('wall ledger', .045, .12, end - start, -w / 2 - .0175, h - .105, (start + end) / 2, mats.dark);
+            ledger.metadata = { deskWallSupport: true };
+            // Concealed steel cantilevers along the west wall, with longer end supports.
+            const count = Math.max(2, Math.ceil((end - start) / .6));
+            for (let i = 0; i <= count; i++) {
+              const z = start + (end - start) * i / count;
+              const atEnd = z < -d / 2 + (config.cornerDesk.returnWidth ?? .62) || z > d / 2 - (config.cornerDesk.returnWidth ?? .62);
+              const reach = (atEnd ? w : config.cornerDesk.worktopDepth) - .13;
+              b('cantilever support', reach, .045, .035, -w / 2 + reach / 2, h - .0675, z, mats.dark);
+              b('wall bracket plate', .025, .24, .065, -w / 2 + .0125, h - .165, z, mats.dark);
+              const brace = b('bracket diagonal', Math.hypot(reach * .6, .18), .025, .025, -w / 2 + reach * .3 + .015, h - .16, z, mats.dark);
+              brace.rotation.z = Math.atan2(.18, reach * .6);
+            }
+          } else {
+            for (const z of [-d / 2 + .08, d / 2 - .08]) b('desk leg', .045, h - .045, .045, w / 2 - .08, (h - .045) / 2, z, mats.dark);
+          }
+          break;
+        }
         if (config.cornerDesk) {
           const parts = furnitureFootprints(config), notch = config.cornerDesk.cornerNotch;
           for (const [index, part] of parts.entries()) {

@@ -36,7 +36,7 @@ test('invalid imports reject NaN, negative sizes, duplicate IDs, parent cycles a
   mutate(c=>{c.room.openings[1].sill=.1;});
   mutate(c=>{c.room.beams[0].enabled=true; c.room.beams[0].length=10;});
   mutate(c=>{c.room.openings[0].windowDetail!.frameWidth=.1;c.room.openings[0].windowDetail!.housingHeight=.08;});
-  mutate(c=>{c.furniture[0].position.z=-.3;});
+  mutate(c=>{c.furniture[0].position.z-=.08;});
   mutate(c=>{c.furniture[0].position.x=20;});
   mutate(c=>{c.furniture.find(f=>f.id==='monitor-left')!.monitor!.wallMount!.offset=.7;});
 });
@@ -79,13 +79,13 @@ test('walking accepts Babylon camera vectors without losing coordinate accessors
   assert.deepEqual(recovered,start,'An invalid previous camera position falls back to the door');
 });
 
-test('L desk leaves the chair bay open and its notched runs rotate with matching collisions', () => {
+test('rectilinear C desk leaves the chair bay open and its notched profile rotates with collisions', () => {
   const config = freshConfig(), desk = config.furniture.find(f=>f.id==='desk')!;
   const parts = obstacles(config).filter(o=>o.id==='desk');
-  assert.equal(parts.length,3); assert.equal(desk.dimensions.depth,2.2); assert.equal(desk.dimensions.width,1.45);
+  assert.equal(parts.length,4); assert.equal(desk.dimensions.depth,2.5); assert.equal(desk.dimensions.width,1.3);
   assert.equal(desk.cornerDesk!.mainRun,'depth');
   assert.ok(canStand(-.6,.1,config.room,parts),'Inner L corner is open');
-  assert.ok(!canStand(-1.5,0,config.room,parts),'West worktop collides');
+  assert.ok(!canStand(-1.5,-.5,config.room,parts),'West worktop collides');
   assert.ok(!canStand(-.6,-.9,config.room,parts),'South return collides');
   desk.rotation=90; desk.position={x:0,y:0,z:0};
   const rotated = obstacles(config).filter(o=>o.id==='desk');
@@ -232,7 +232,7 @@ test('furniture geometry stays inside the configured metric envelopes and is sel
     const inverse=Matrix.Invert(object.root.computeWorldMatrix(true));
     for(const mesh of object.meshes) {
       mesh.computeWorldMatrix(true); assert.equal(mesh.metadata.furnitureId,object.config.id); assert.ok(mesh.isPickable);
-      if(mesh.metadata.wallMountSupport) continue; // Independent wall arms have their own reach envelope.
+      if(mesh.metadata.wallMountSupport || mesh.metadata.deskWallSupport) continue; // Independent wall arms have their own reach envelope.
       for(const point of mesh.getBoundingInfo().boundingBox.vectorsWorld) {
         const p=Vector3.TransformCoordinates(point,inverse);
         assert.ok(Math.abs(p.x)<=w/2+.001,`${mesh.name}: X ${p.x}`);

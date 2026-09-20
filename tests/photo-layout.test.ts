@@ -116,7 +116,7 @@ test('a standing visitor can walk from the door through the free circulation are
   let point = findWalkStart(config)!;
   assert.ok(point);
   // This route uses real swept collision movement and includes the chair, PC and step.
-  for (const target of [{ x: .95, z: point.z }, { x: .95, z: .9 }, { x: -.55, z: .9 }]) {
+  for (const target of [{ x: .95, z: point.z }, { x: .95, z: .5 }, { x: .15, z: .5 }, { x: .15, z: -.1 }]) {
     point = moveWithCollisions(point, target.x - point.x, target.z - point.z, config.room, items);
     near(point.x, target.x); near(point.z, target.z);
     assert.ok(canStand(point.x, point.z, config.room, items));

@@ -8,8 +8,9 @@ import { monitorMountGeometry, wallMountFootprints } from '../furniture/wallMoun
 import { architectureConflict, itemFitsRoom, obstacles, rectanglesOverlap } from '../navigation/collision';
 import { airConditionerObstacle } from '../architecture/airConditionerLayout';
 
-// Revision 7 rebalances only the workstation; all approved architecture stays as saved.
-export const STORAGE_KEY = 'roomwork.office.v7';
+// Revision 8 restores both workstations on a floating desk; architecture stays as saved.
+export const STORAGE_KEY = 'roomwork.office.v8';
+export const CORRECTION_PREVIOUS_STORAGE_KEY = 'roomwork.office.v7';
 export const WORKSTATION_PREVIOUS_STORAGE_KEY = 'roomwork.office.v6';
 export const AC_PREVIOUS_STORAGE_KEY = 'roomwork.office.v5';
 export const PREVIOUS_STORAGE_KEY = 'roomwork.office.v4';
@@ -88,8 +89,11 @@ export function validateConfig(input: unknown): PlannerConfig {
     if (!item.position || !['x','y','z'].every(k => finite(item.position[k as keyof typeof item.position], -30, 30)) || !finite(item.rotation, -36000, 36000)) fail('A furniture transform is invalid.');
     if (item.parentId !== undefined && (typeof item.parentId !== 'string' || !config.furniture.some(f => f.id === item.parentId))) fail('A furniture parent does not exist.');
     if (item.onDesktop !== undefined && (typeof item.onDesktop !== 'boolean' || config.furniture.find(f=>f.id===item.parentId)?.kind!=='desk')) fail('A desktop attachment needs a desk parent.');
-    if (item.cornerDesk && (item.kind !== 'desk' || !finite(item.cornerDesk.worktopDepth, .3, Math.min(item.dimensions.width, item.dimensions.depth) - .15))) fail('Worktop depth must leave an open inner corner in the L-shaped desk.');
+    if (item.cornerDesk && (item.kind !== 'desk' || !finite(item.cornerDesk.worktopDepth, .3, Math.min(item.dimensions.width, item.dimensions.depth) - .15))) fail('Main surface depth must leave at least 15 cm for the short returns.');
     if(item.cornerDesk?.mainRun!==undefined && !['width','depth'].includes(item.cornerDesk.mainRun)) fail('The desk main run must be width or depth.');
+    if(item.cornerDesk?.shape!==undefined && !['l','rect-c'].includes(item.cornerDesk.shape)) fail('Unknown desk profile.');
+    if(item.cornerDesk?.floating!==undefined && typeof item.cornerDesk.floating!=='boolean') fail('Desk support must be floating or floor-supported.');
+    if(item.cornerDesk?.shape==='rect-c' && !finite(item.cornerDesk.returnWidth,.3,(item.dimensions.depth-.7)/2)) fail('Return widths must leave at least 70 cm of open chair bay.');
     const notch=item.cornerDesk?.cornerNotch;
     if(notch && (!finite(notch.width,.01,item.cornerDesk!.worktopDepth-.1) || !finite(notch.depth,.01,item.cornerDesk!.worktopDepth-.1))) fail('The corner cutout must leave at least 10 cm of worktop on both sides.');
     if (item.kind==='work-zone' || item.workZone) {
@@ -141,13 +145,24 @@ export function validateConfig(input: unknown): PlannerConfig {
 export function loadConfig(): { config: PlannerConfig; warning?: string } {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) return { config: validateConfig(JSON.parse(saved)) };
-    const previousWorkstation=localStorage.getItem(WORKSTATION_PREVIOUS_STORAGE_KEY);
+    if (saved) {
+      const input=JSON.parse(saved);
+      // A live dev browser may have saved the interrupted curved prototype.
+      // Correct its furniture without falling back to default room measurements.
+      if (input?.furniture?.some((item: { cornerDesk?: { shape?: string } })=>item.cornerDesk?.shape==='soft-c')) {
+        const config=rebalanceWorkstation(input);
+        localStorage.setItem(`${STORAGE_KEY}.prototype-backup`,saved);
+        saveConfig(config);
+        return {config,warning:'Squared desk correction loaded. Your room settings and previous layout are preserved.'};
+      }
+      return { config: validateConfig(input) };
+    }
+    const previousWorkstation=localStorage.getItem(CORRECTION_PREVIOUS_STORAGE_KEY) ?? localStorage.getItem(WORKSTATION_PREVIOUS_STORAGE_KEY);
     if(previousWorkstation) {
       const original=validateConfig(JSON.parse(previousWorkstation));
       try {
         const config=rebalanceWorkstation(original),persisted=saveConfig(config);
-        return {config,warning:persisted?'Desk rebalanced toward the main wall. Your room is unchanged; the previous layout is backed up.':'Rebalanced desk loaded. Export to save; browser storage is unavailable.'};
+        return {config,warning:persisted?'Both workstations restored on the floating wraparound desk. Your room is unchanged; the previous layout is backed up.':'Rebalanced desk loaded. Export to save; browser storage is unavailable.'};
       } catch {
         return {config:original,warning:'The revised desk does not fit your custom measurements. Your existing scene was kept unchanged.'};
       }
@@ -182,22 +197,29 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
   } catch { return { config: freshConfig(), warning: 'The saved layout could not be loaded. Starting with the original layout.' }; }
 }
 
-/** Furniture-only redesign: preserve architecture, finishes and unrelated/removed objects. */
+/** Furniture-only correction: preserve architecture, finishes and unrelated objects. */
 export function rebalanceWorkstation(input: unknown): PlannerConfig {
-  const config=validateConfig(input),defaults=freshConfig();
+  const config=structuredClone(input) as PlannerConfig,defaults=freshConfig();
+  if(!config || config.version!==2 || !config.room || !Array.isArray(config.furniture)) fail('Expected a Roomwork layout object.');
   const dx=-(config.room.length-defaults.room.length)/2,dz=-(config.room.width-defaults.room.width)/2;
   const replacements=new Map(defaults.furniture.map(item=>[item.id,item]));
   config.furniture=config.furniture.map(current=>{
     const replacement=replacements.get(current.id);
     if(!replacement || replacement.kind!==current.kind) return current;
     const next={...structuredClone(replacement),color:current.color};
-    if(next.kind!=='work-zone') next.visible=current.visible;
+    next.visible=true;
     if(!next.parentId) { next.position.x+=dx;next.position.z+=dz; }
+    if(next.monitor?.wallMount) next.monitor.wallMount.offset += ['north','south'].includes(next.monitor.wallMount.wall) ? dx : dz;
     return next;
   });
-  // A prior removal of the optional pair may also have removed its old child laptop.
-  // This design gives the explicitly requested laptop its own permanent return surface.
-  if(!config.furniture.some(f=>f.id==='work-laptop') && config.furniture.some(f=>f.id==='desk')) config.furniture.push(structuredClone(replacements.get('work-laptop')!));
+  // Restore every explicitly requested workstation element, including a previously removed pair.
+  for (const item of defaults.furniture) {
+    if (config.furniture.some(f=>f.id===item.id)) continue;
+    const next=structuredClone(item);
+    if (!next.parentId) { next.position.x+=dx; next.position.z+=dz; }
+    if(next.monitor?.wallMount) next.monitor.wallMount.offset += ['north','south'].includes(next.monitor.wallMount.wall) ? dx : dz;
+    config.furniture.push(next);
+  }
   return validateConfig(config);
 }
 
