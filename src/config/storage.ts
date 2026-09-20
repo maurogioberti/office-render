@@ -3,13 +3,14 @@ import type { PlannerConfig } from './types';
 import { monitorPanel } from '../furniture/footprint';
 import { createWorkZone } from './office';
 import { resizeCornerDesk } from '../furniture/deskLayout';
-import { workZonePlacementIssue } from '../furniture/workZonePlacement';
+import { desktopItemPlacementIssue, workZonePlacementIssue } from '../furniture/workZonePlacement';
 import { monitorMountGeometry, wallMountFootprints } from '../furniture/wallMounts';
 import { architectureConflict, itemFitsRoom, obstacles, rectanglesOverlap } from '../navigation/collision';
 import { airConditionerObstacle } from '../architecture/airConditionerLayout';
 
-// Revision 6 adds only the wall AC to the approved v5 scene; keep that save as a backup.
-export const STORAGE_KEY = 'roomwork.office.v6';
+// Revision 7 rebalances only the workstation; all approved architecture stays as saved.
+export const STORAGE_KEY = 'roomwork.office.v7';
+export const WORKSTATION_PREVIOUS_STORAGE_KEY = 'roomwork.office.v6';
 export const AC_PREVIOUS_STORAGE_KEY = 'roomwork.office.v5';
 export const PREVIOUS_STORAGE_KEY = 'roomwork.office.v4';
 export const LEGACY_STORAGE_KEY = 'roomwork.office.v1';
@@ -88,6 +89,9 @@ export function validateConfig(input: unknown): PlannerConfig {
     if (item.parentId !== undefined && (typeof item.parentId !== 'string' || !config.furniture.some(f => f.id === item.parentId))) fail('A furniture parent does not exist.');
     if (item.onDesktop !== undefined && (typeof item.onDesktop !== 'boolean' || config.furniture.find(f=>f.id===item.parentId)?.kind!=='desk')) fail('A desktop attachment needs a desk parent.');
     if (item.cornerDesk && (item.kind !== 'desk' || !finite(item.cornerDesk.worktopDepth, .3, Math.min(item.dimensions.width, item.dimensions.depth) - .15))) fail('Worktop depth must leave an open inner corner in the L-shaped desk.');
+    if(item.cornerDesk?.mainRun!==undefined && !['width','depth'].includes(item.cornerDesk.mainRun)) fail('The desk main run must be width or depth.');
+    const notch=item.cornerDesk?.cornerNotch;
+    if(notch && (!finite(notch.width,.01,item.cornerDesk!.worktopDepth-.1) || !finite(notch.depth,.01,item.cornerDesk!.worktopDepth-.1))) fail('The corner cutout must leave at least 10 cm of worktop on both sides.');
     if (item.kind==='work-zone' || item.workZone) {
       const s=item.workZone;
       if (item.kind!=='work-zone' || !item.onDesktop || !s || !finite(s.surfaceOffset,.025,.1) || !finite(s.columnHeight,.15,.8) || !finite(s.armReach,.15,1) || item.dimensions.depth<.2 || item.dimensions.width<.15 || item.dimensions.height<s.surfaceOffset+s.columnHeight+.03) fail('The work zone needs a valid desktop clamp, column, and arm reach.');
@@ -126,6 +130,7 @@ export function validateConfig(input: unknown): PlannerConfig {
     if (!itemFitsRoom(item,config)) fail(`${item.name} would extend outside the room. Adjust its position or dimensions first.`);
     if (architectureConflict(item,config)) fail(`${item.name} would intersect the corner step or soffit. Adjust its position or dimensions first.`);
     if (item.workZone) { const issue=workZonePlacementIssue(item,config); if(issue) fail(issue); }
+    const desktopIssue=desktopItemPlacementIssue(item,config);if(desktopIssue) fail(desktopIssue);
   }
   const acSolid=airConditionerObstacle(room,true);
   if(acSolid && obstacles(config).some(o=>o.id!=='wall-ac' && rectanglesOverlap(acSolid,o))) fail('The air conditioner or its trim intersects existing furniture, a soffit, or a corner step. Adjust the AC placement.');
@@ -137,22 +142,32 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) return { config: validateConfig(JSON.parse(saved)) };
+    const previousWorkstation=localStorage.getItem(WORKSTATION_PREVIOUS_STORAGE_KEY);
+    if(previousWorkstation) {
+      const original=validateConfig(JSON.parse(previousWorkstation));
+      try {
+        const config=rebalanceWorkstation(original),persisted=saveConfig(config);
+        return {config,warning:persisted?'Desk rebalanced toward the main wall. Your room is unchanged; the previous layout is backed up.':'Rebalanced desk loaded. Export to save; browser storage is unavailable.'};
+      } catch {
+        return {config:original,warning:'The revised desk does not fit your custom measurements. Your existing scene was kept unchanged.'};
+      }
+    }
     const previousAC=localStorage.getItem(AC_PREVIOUS_STORAGE_KEY);
     if(previousAC) {
       const original=validateConfig(JSON.parse(previousAC));
       try {
-        const config=upgradeAirConditionerLayout(original),persisted=saveConfig(config);
-        return {config,warning:persisted ? 'Through-wall AC added. Your room layout is unchanged and the previous scene remains backed up.' : 'AC loaded. Export to save; browser storage is unavailable.'};
+        const config=rebalanceWorkstation(upgradeAirConditionerLayout(original)),persisted=saveConfig(config);
+        return {config,warning:persisted ? 'AC added and workstation rebalanced. Existing room architecture is preserved; the previous scene remains backed up.' : 'Updated scene loaded. Export to save; browser storage is unavailable.'};
       } catch {
-        return {config:original,warning:'The AC does not fit the saved wall arrangement. Your existing scene was kept unchanged.'};
+        return {config:original,warning:'The updated workstation or AC does not fit the saved arrangement. Your existing scene was kept unchanged.'};
       }
     }
     const previous=localStorage.getItem(PREVIOUS_STORAGE_KEY);
     if (previous) {
       const original=validateConfig(JSON.parse(previous));
       try {
-        const config=upgradeAirConditionerLayout(upgradeWorkLayout(original)), persisted=saveConfig(config);
-        return {config,warning:persisted ? 'Larger desk and removable work zone loaded. Your room and personal monitors are unchanged; the previous layout is backed up.' : 'Updated desk loaded. Export to save; browser storage is unavailable.'};
+        const config=rebalanceWorkstation(upgradeAirConditionerLayout(upgradeWorkLayout(original))), persisted=saveConfig(config);
+        return {config,warning:persisted ? 'Workstation rebalanced with a shorter window return. Existing room architecture is preserved; the previous layout is backed up.' : 'Updated desk loaded. Export to save; browser storage is unavailable.'};
       } catch {
         return {config:original,warning:'The larger setup does not fit your saved furniture arrangement. Your room and existing layout were kept; adjust the desk before adding the work zone.'};
       }
@@ -160,11 +175,30 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
     for (const key of ['roomwork.office.v3', 'roomwork.office.v2', LEGACY_STORAGE_KEY]) {
       const previous = localStorage.getItem(key);
       if (!previous) continue;
-      const config = upgradeAirConditionerLayout(upgradeSavedLayout(JSON.parse(previous))), persisted = saveConfig(config);
+      const config = rebalanceWorkstation(upgradeAirConditionerLayout(upgradeSavedLayout(JSON.parse(previous)))), persisted = saveConfig(config);
       return { config, warning: persisted ? 'Photo-based room correction loaded. Your previous layout remains backed up on this device.' : 'Updated layout loaded. Export it to save; browser storage is unavailable.' };
     }
     return { config: freshConfig() };
   } catch { return { config: freshConfig(), warning: 'The saved layout could not be loaded. Starting with the original layout.' }; }
+}
+
+/** Furniture-only redesign: preserve architecture, finishes and unrelated/removed objects. */
+export function rebalanceWorkstation(input: unknown): PlannerConfig {
+  const config=validateConfig(input),defaults=freshConfig();
+  const dx=-(config.room.length-defaults.room.length)/2,dz=-(config.room.width-defaults.room.width)/2;
+  const replacements=new Map(defaults.furniture.map(item=>[item.id,item]));
+  config.furniture=config.furniture.map(current=>{
+    const replacement=replacements.get(current.id);
+    if(!replacement || replacement.kind!==current.kind) return current;
+    const next={...structuredClone(replacement),color:current.color};
+    if(next.kind!=='work-zone') next.visible=current.visible;
+    if(!next.parentId) { next.position.x+=dx;next.position.z+=dz; }
+    return next;
+  });
+  // A prior removal of the optional pair may also have removed its old child laptop.
+  // This design gives the explicitly requested laptop its own permanent return surface.
+  if(!config.furniture.some(f=>f.id==='work-laptop') && config.furniture.some(f=>f.id==='desk')) config.furniture.push(structuredClone(replacements.get('work-laptop')!));
+  return validateConfig(config);
 }
 
 /** Add only the new fixture. Explicit imports remain untouched by this browser-save upgrade. */

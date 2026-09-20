@@ -55,5 +55,5 @@ test('AC validation rejects window/soffit collisions and casings that do not pas
   invalid(c=>{c.room.airConditioner!.bottom=2.08;},/soffit/);
   invalid(c=>{c.room.airConditioner!.depth=.32;},/rear casing extending outside/);
   invalid(c=>{c.room.airConditioner!.louverYaw=NaN;},/outlet angle/);
-  invalid(c=>{c.room.airConditioner!.bottom=1.1;c.room.airConditioner!.interiorProjection=.35;},/air conditioner|corner step or soffit/);
+  invalid(c=>{c.room.airConditioner!.wall='west';c.room.airConditioner!.offset=-.7;c.room.airConditioner!.bottom=1.12;c.room.airConditioner!.interiorProjection=.35;},/air conditioner|corner step or soffit/);
 });

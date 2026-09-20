@@ -142,7 +142,7 @@ function edgeGap(a: Obstacle, b: Obstacle) {
   return Math.min(...av.flatMap(p => bv.map((q, i) => distanceToSegment(p, q, bv[(i + 1) % 4]))), ...bv.flatMap(p => av.map((q, i) => distanceToSegment(p, q, av[(i + 1) % 4]))));
 }
 
-test('four monitor cases are separate while each neighboring display remains tightly integrated around the corner', () => {
+test('four monitor cases form a separate, inward-angled array on the main wall', () => {
   const config = freshConfig(), monitors = obstacles(config).filter(o => o.id.startsWith('monitor-') && !o.support);
   assert.equal(monitors.length, 4);
   for (let i = 0; i < monitors.length; i++) for (let j = i + 1; j < monitors.length; j++) {
@@ -151,8 +151,11 @@ test('four monitor cases are separate while each neighboring display remains tig
   const sequence = ['monitor-left', 'monitor-center', 'monitor-right', 'monitor-portrait'].map(id => monitors.find(m => m.id === id)!);
   for (let i = 1; i < sequence.length; i++) {
     const gap = edgeGap(sequence[i - 1], sequence[i]);
-    assert.ok(gap > .001 && gap < .06, `Adjacent cases should have a small usable gap; got ${gap} m`);
+    assert.ok(gap > .001 && gap < .15, `${sequence[i-1].id} and ${sequence[i].id} should form one usable array; gap is ${gap} m`);
   }
-  const landscape = config.furniture.filter(f => f.monitor?.orientation === 'landscape');
-  assert.ok(Math.abs(landscape[0].rotation - landscape[2].rotation) >= 60, 'Array must substantially turn around the corner');
+  const landscape = config.furniture.filter(f => f.monitor?.mount === 'wall' && f.monitor.orientation === 'landscape');
+  assert.ok(landscape.every(item => item.monitor!.wallMount!.wall === 'west'), 'The long right-side run holds the main array');
+  assert.equal(landscape[1].rotation, -90, 'The center screen faces directly into the main chair bay');
+  assert.ok(landscape[0].rotation < -90 && landscape[2].rotation > -90, 'The side screens angle inward around the centered workstation');
+  assert.ok(Math.abs(landscape[0].rotation - landscape[2].rotation) >= 60);
 });

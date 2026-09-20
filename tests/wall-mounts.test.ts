@@ -19,7 +19,8 @@ test('wall-mounted monitor arms connect solid-wall plates to VESA joints within 
     assert.equal(monitors.length, 4);
     for (const object of monitors) {
       const geometry = monitorMountGeometry(object.config, config.room);
-      assert.ok(geometry.reach > .2 && geometry.reach < object.config.monitor!.wallMount!.maxReach);
+      assert.ok(geometry.reach > .1 && geometry.reach < object.config.monitor!.wallMount!.maxReach,
+        'A compact folded wall arm must still have positive reach and stay within its configured extension');
       assert.equal(object.config.parentId, undefined);
       const plate = object.meshes.find(mesh => mesh.name.includes('wall mounting plate'))!;
       const inner = object.meshes.find(mesh => mesh.name.includes('wall arm inner link'))!;

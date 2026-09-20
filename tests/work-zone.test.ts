@@ -98,8 +98,12 @@ test('shared arms remain linked during nested desk, zone and live screen quatern
   } finally { scene.dispose(); engine.dispose(); }
 });
 
-test('all six monitor cases remain separate while the laptop rests below them on a supported desktop', () => {
-  const config = validateConfig(freshConfig()), desk = config.furniture.find(item => item.id === 'desk')!;
+test('enabling the optional dual arm keeps all six cases separate and the independent laptop on the return', () => {
+  const initial = freshConfig();
+  assert.equal(initial.furniture.find(item => item.id === 'work-zone')!.visible, false);
+  assert.equal(obstacles(initial).filter(item => item.id.startsWith('work-monitor') && !item.support).length, 0);
+  initial.furniture.find(item => item.id === 'work-zone')!.visible = true;
+  const config = validateConfig(initial), desk = config.furniture.find(item => item.id === 'desk')!;
   const zone = config.furniture.find(item => item.id === 'work-zone')!, laptop = config.furniture.find(item => item.kind === 'laptop')!;
   assert.equal(workZonePlacementIssue(zone, config), undefined);
   assert.equal(architectureConflict(desk, config), undefined);
@@ -112,11 +116,13 @@ test('all six monitor cases remain separate while the laptop rests below them on
   }
   const desktopY = worldTransform(desk, config.furniture).position.y + desk.dimensions.height;
   const laptopY = worldTransform(laptop, config.furniture).position.y;
+  assert.equal(laptop.parentId, desk.id, 'Removing the optional dual arm cannot remove the laptop');
+  assert.equal(laptop.onDesktop, true);
   assert.ok(Math.abs(laptopY - desktopY) < .00001, 'The laptop base rests on the desktop');
   assert.ok(cases.filter(item => item.id.startsWith('work-')).every(item => item.bottom > laptopY + laptop.dimensions.height), 'Both work monitors clear the open laptop');
   const unsupported = structuredClone(config);
-  unsupported.furniture.find(item => item.id === laptop.id)!.position.z -= .5;
-  assert.match(workZonePlacementIssue(unsupported.furniture.find(item => item.id === zone.id)!, unsupported)!, /laptop must fit on the desktop/);
+  unsupported.furniture.find(item => item.id === laptop.id)!.position.z += .5;
+  assert.throws(() => validateConfig(unsupported), /laptop must fit on the desktop/i);
 });
 
 test('laptop keyboard, touchpad and open screen stay within the envelope throughout the supported angle range', () => {

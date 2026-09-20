@@ -32,14 +32,13 @@ function enclosure(meshes: Mesh[]) {
   };
 }
 
-test('adding the A/C preserves every previously approved room and furniture value', () => {
+test('the workstation redesign preserves the approved room and installed A/C verbatim', () => {
   const current = freshConfig();
   assert.ok(current.room.airConditioner?.enabled);
-  delete current.room.airConditioner;
-  // Independent pre-A/C snapshot: freshConfig exported by approved commit 0f7204c.
-  // This protects the existing room, window, soffits, desk, six monitors and laptop.
-  const checksum = createHash('sha256').update(JSON.stringify(current)).digest('hex');
-  assert.equal(checksum, 'c45618104a66cd6f47456df7133dd7643d1fa88249efcafd9f06460253d36ec9');
+  // Independent room snapshot exported from approved commit f1e10a0, including its A/C.
+  // Furniture is intentionally redesigned; walls, openings, soffits and installation stay fixed.
+  const checksum = createHash('sha256').update(JSON.stringify(current.room)).digest('hex');
+  assert.equal(checksum, 'a0fe5c0a79998cc20d16783a1b9dcc6e0063ac8cf1618cfd1fb2892390d9797e');
 });
 
 test('the box casing crosses a real wall opening with the specified indoor and outdoor depths', () => {

@@ -136,6 +136,12 @@ export class Planner {
     const t = o.config.cornerDesk?.worktopDepth;
     const points = t ? [new Vector3(-x,.008,-z),new Vector3(x,.008,-z),new Vector3(x,.008,-z+t),new Vector3(-x+t,.008,-z+t),new Vector3(-x+t,.008,z),new Vector3(-x,.008,z),new Vector3(-x,.008,-z)]
       : [new Vector3(-x,.008,-z),new Vector3(x,.008,-z),new Vector3(x,.008,z),new Vector3(-x,.008,z),new Vector3(-x,.008,-z)];
+    const notch=o.config.cornerDesk?.cornerNotch;
+    if(notch) {
+      points[0].x+=notch.width;
+      points.pop();
+      points.push(new Vector3(-x,.008,-z+notch.depth),new Vector3(-x+notch.width,.008,-z+notch.depth),points[0].clone());
+    }
     const lines = MeshBuilder.CreateLines('Selected object footprint', { points }, this.scene);
     lines.color = Color3.FromHexString('#6c8555'); lines.isPickable = false; lines.parent = o.root; this.selection = lines;
     this.gizmos.attachToMesh(o.root);
@@ -177,6 +183,7 @@ export class Planner {
         if (item.kind === 'desk' && field === 'height') config.furniture.filter(f=>f.parentId === item.id && (f.onDesktop || f.kind === 'monitor')).forEach(f=>{ f.position.y += value-oldHeight; });
       } else if(group === 'position' && ['x','y','z'].includes(field)) item.position[field as keyof FurnitureConfig['position']] = value;
       else if(group === 'cornerDesk' && field === 'worktopDepth' && item.cornerDesk) item.cornerDesk.worktopDepth = value;
+      else if(group === 'cornerNotch' && (field==='width' || field==='depth') && item.cornerDesk?.cornerNotch) item.cornerDesk.cornerNotch[field]=value;
       else if(group === 'wallMount' && ['offset','height','maxReach'].includes(field) && item.monitor?.wallMount) item.monitor.wallMount[field as 'offset' | 'height' | 'maxReach'] = value;
       else if(group === 'workZone' && ['columnHeight','armReach'].includes(field) && item.workZone) item.workZone[field as 'columnHeight'|'armReach']=value;
       else if(group === 'laptop' && field==='openingAngle' && item.laptop) item.laptop.openingAngle=value;

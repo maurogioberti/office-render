@@ -30,10 +30,34 @@ export function createFurniture(scene: Scene, configs: FurnitureConfig[], mats: 
     switch (config.kind) {
       case 'desk': {
         if (config.cornerDesk) {
-          for (const [index, part] of furnitureFootprints(config).entries()) {
+          const parts = furnitureFootprints(config), notch = config.cornerDesk.cornerNotch;
+          for (const [index, part] of parts.entries()) {
             b(`L worktop ${index}`, part.width, .035, part.depth, part.x, h - .0175, part.z);
-            for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+            if (!notch) for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
               b('corner desk leg', .045, h - .035, .045, part.x + sx * (part.width / 2 - .065), (h - .035) / 2, part.z + sz * (part.depth / 2 - .065), mats.dark);
+            }
+          }
+          if (notch) {
+            // Supports follow the two real runs, never the number of rectangles used to cut the top.
+            const inset = Math.min(.075, config.cornerDesk.worktopDepth / 4);
+            const leftEnd = { x: -w / 2 + inset, z: d / 2 - inset };
+            const rightEnd = { x: w / 2 - inset, z: -d / 2 + inset };
+            const besideLeftNotch = { x: -w / 2 + inset, z: -d / 2 + notch.depth + inset };
+            const besideRightNotch = { x: -w / 2 + notch.width + inset, z: -d / 2 + inset };
+            const candidates = [leftEnd,
+              { x: -w / 2 + config.cornerDesk.worktopDepth - inset, z: d / 2 - inset },
+              rightEnd, { x: w / 2 - inset, z: -d / 2 + config.cornerDesk.worktopDepth - inset },
+              besideLeftNotch, besideRightNotch];
+            const supported = (point: { x: number; z: number }) => [-1, 1].every(sx => [-1, 1].every(sz =>
+              parts.some(part => Math.abs(point.x + sx * .0225 - part.x) <= part.width / 2 + .000001
+                && Math.abs(point.z + sz * .0225 - part.z) <= part.depth / 2 + .000001)));
+            const legs = candidates.filter((point, index) => supported(point)
+              && !candidates.slice(0, index).some(previous => Math.hypot(point.x - previous.x, point.z - previous.z) < .06));
+            for (const point of legs) b('corner desk leg', .045, h - .035, .045, point.x, (h - .035) / 2, point.z, mats.dark);
+            for (const [start, end] of [[besideLeftNotch, leftEnd], [besideRightNotch, rightEnd]]) {
+              if (!supported(start) || !supported(end)) continue;
+              const width = Math.max(.035, Math.abs(end.x - start.x)), depth = Math.max(.035, Math.abs(end.z - start.z));
+              b('corner desk rear rail', width, .045, depth, (start.x + end.x) / 2, h - .0575, (start.z + end.z) / 2, mats.dark);
             }
           }
           break;

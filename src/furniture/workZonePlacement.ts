@@ -3,6 +3,19 @@ import { furnitureFootprints } from './footprint';
 import { sharedArmGeometry } from './deskArm';
 import { obstacles, rectanglesOverlap } from '../navigation/collision';
 
+/** Independent laptops remain supported when the optional screen pair is removed. */
+export function desktopItemPlacementIssue(item: FurnitureConfig,config: PlannerConfig): string|undefined {
+  if(!item.onDesktop || item.workZone) return;
+  const desk=config.furniture.find(f=>f.id===item.parentId)!;
+  if(Math.abs(item.position.y-desk.dimensions.height)>.001) return 'Keep the laptop base on the desktop.';
+  const r=item.rotation*Math.PI/180;
+  for(const sx of [-1,1]) for(const sz of [-1,1]) {
+    const x=sx*item.dimensions.width/2,z=sz*item.dimensions.depth/2;
+    const px=item.position.x+x*Math.cos(r)+z*Math.sin(r),pz=item.position.z-x*Math.sin(r)+z*Math.cos(r);
+    if(!furnitureFootprints(desk).some(p=>Math.abs(px-p.x)<=p.width/2+.0001 && Math.abs(pz-p.z)<=p.depth/2+.0001)) return 'The laptop must fit on the desktop. Move it inward or enlarge the desk.';
+  }
+}
+
 /** Check the real attachment and laptop support, rather than the group's empty envelope. */
 export function workZonePlacementIssue(group: FurnitureConfig, config: PlannerConfig): string | undefined {
   const desk=config.furniture.find(f=>f.id===group.parentId)!;

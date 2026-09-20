@@ -1,14 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { freshConfig } from '../src/config/office';
-import { loadConfig, PREVIOUS_STORAGE_KEY, STORAGE_KEY, upgradeWorkLayout, validateConfig } from '../src/config/storage';
+import { loadConfig, WORKSTATION_PREVIOUS_STORAGE_KEY, STORAGE_KEY, rebalanceWorkstation, validateConfig } from '../src/config/storage';
 import { removeFurnitureTree, resizeCornerDesk } from '../src/furniture/deskLayout';
 import { worldTransform } from '../src/navigation/collision';
 
 function approvedLayout() {
-  const config=freshConfig();
-  removeFurnitureTree(config,'work-zone');
-  resizeCornerDesk(config,config.furniture.find(f=>f.id==='desk')!,1.5,1.8);
+  const config:ReturnType<typeof freshConfig>=JSON.parse(readFileSync(new URL('./fixtures/layout-v6.json',import.meta.url),'utf8'));
   // Actual user edits to the approved room and independent personal station must survive.
   config.room.wallFinishes.north.color='#dedbd4';
   config.room.openings[0].windowDetail!.frameColor='#514839';
@@ -17,22 +16,23 @@ function approvedLayout() {
   return validateConfig(config);
 }
 
-test('the larger desk upgrade preserves approved architecture and personal monitors exactly, and PC world position', () => {
-  const before=approvedLayout(), snapshot=structuredClone(before), after=upgradeWorkLayout(before);
+test('workstation redesign preserves architecture and finishes while shortening the window return', () => {
+  const before=approvedLayout(), snapshot=structuredClone(before), after=rebalanceWorkstation(before);
   assert.deepEqual(before,snapshot,'Migration must not mutate the original backup');
   assert.deepEqual(after.room,before.room);
-  assert.deepEqual(after.furniture.filter(f=>f.monitor?.mount==='wall'),before.furniture.filter(f=>f.monitor?.mount==='wall'));
-  assert.deepEqual(after.furniture.find(f=>f.id==='chair'),before.furniture.find(f=>f.id==='chair'));
-  const pcBefore=worldTransform(before.furniture.find(f=>f.id==='pc')!,before.furniture);
-  const pcAfter=worldTransform(after.furniture.find(f=>f.id==='pc')!,after.furniture);
-  for(const axis of ['x','y','z'] as const) assert.ok(Math.abs(pcAfter.position[axis]-pcBefore.position[axis])<1e-8);
+  assert.equal(after.furniture.find(f=>f.id==='monitor-right')!.color,'#3b403d');
+  assert.ok(after.furniture.filter(f=>f.monitor?.mount==='wall').every(f=>f.monitor!.wallMount!.wall==='west'));
   const desk=after.furniture.find(f=>f.id==='desk')!;
-  assert.deepEqual(desk.dimensions,{width:2.4,height:.76,depth:1.9});
+  assert.deepEqual(desk.dimensions,{width:1.45,height:.76,depth:2.2});
+  assert.equal(desk.cornerDesk!.mainRun,'depth');
   assert.equal(desk.cornerDesk!.worktopDepth,.72);
   assert.equal(after.furniture.length,11);
-  assert.deepEqual(upgradeWorkLayout(after),after,'Already upgraded layouts do not duplicate the second setup');
+  assert.deepEqual(rebalanceWorkstation(after),after,'Already upgraded layouts do not duplicate the second setup');
+  assert.equal(after.furniture.find(f=>f.id==='work-zone')!.visible,false);
+  removeFurnitureTree(after,'work-zone');
+  assert.equal(after.furniture.find(f=>f.id==='work-laptop')!.parentId,'desk','The laptop survives optional pair removal');
   const imported=validateConfig(before);
-  assert.equal(imported.furniture.length,7); assert.equal(imported.furniture[0].dimensions.width,1.5,'Explicit old imports retain their desk size');
+  assert.equal(imported.furniture.length,11); assert.equal(imported.furniture[0].dimensions.width,2.4,'Explicit old imports retain their desk size');
 });
 
 test('desk resizing anchors the rear corner and preserves child world placement even for rotated desks', () => {
@@ -54,28 +54,28 @@ test('desk resizing anchors the rear corner and preserves child world placement 
 
 test('work-zone support and display separation reject floating clamps, excessive reach and overlapping cases', () => {
   const invalid=(edit:(config:ReturnType<typeof freshConfig>)=>void,pattern:RegExp)=>{
-    const config=freshConfig();edit(config);assert.throws(()=>validateConfig(config),pattern);
+    const config=freshConfig();config.furniture.find(f=>f.id==='work-zone')!.visible=true;edit(config);assert.throws(()=>validateConfig(config),pattern);
   };
   invalid(c=>{c.furniture.find(f=>f.id==='work-zone')!.position.y+=.05;},/clamp on the desk surface/);
   invalid(c=>{c.furniture.find(f=>f.id==='work-zone')!.position.z+=.10;},/clamp at a desk edge/);
   invalid(c=>{c.furniture.find(f=>f.id==='work-zone')!.workZone!.armReach=.2;},/shared arm reach/);
   invalid(c=>{c.furniture.find(f=>f.id==='work-monitor-right')!.position.x=.29;},/would intersect/);
-  invalid(c=>{c.furniture.find(f=>f.id==='monitor-left')!.position={x:-.65,y:1.12,z:-.70};},/would intersect/);
+  invalid(c=>{c.furniture.find(f=>f.id==='work-laptop')!.position.x+=1;},/laptop must fit/);
 });
 
-test('saved-layout upgrade falls back to the original approved layout if the new monitors would collide', () => {
+test('saved-layout upgrade falls back to the original scene if its corner feature needs a different cutout', () => {
   const original=approvedLayout();
-  original.furniture.find(f=>f.id==='monitor-left')!.position={x:-.65,y:1.12,z:-.70};
+  original.room.cornerFeatures[0].width=.4;
   validateConfig(original);
-  assert.throws(()=>upgradeWorkLayout(original),/would intersect/);
-  const json=JSON.stringify(original), saved=new Map([[PREVIOUS_STORAGE_KEY,json]]);
+  assert.throws(()=>rebalanceWorkstation(original),/corner step/);
+  const json=JSON.stringify(original), saved=new Map([[WORKSTATION_PREVIOUS_STORAGE_KEY,json]]);
   const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
   Object.defineProperty(globalThis,'localStorage',{configurable:true,value:{getItem:(key:string)=>saved.get(key)??null,setItem:(key:string,value:string)=>saved.set(key,value)}});
   try {
     const loaded=loadConfig();
     assert.deepEqual(loaded.config,original);
-    assert.match(loaded.warning!,/existing layout were kept/);
-    assert.equal(saved.get(PREVIOUS_STORAGE_KEY),json);
+    assert.match(loaded.warning!,/scene was kept unchanged/);
+    assert.equal(saved.get(WORKSTATION_PREVIOUS_STORAGE_KEY),json);
     assert.equal(saved.has(STORAGE_KEY),false,'Do not persist an intersecting automatic upgrade');
   } finally {
     if(descriptor) Object.defineProperty(globalThis,'localStorage',descriptor);

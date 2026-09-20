@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { ArcRotateCamera, Matrix, NullEngine, Ray, Scene, Vector3 } from '@babylonjs/core';
 import { freshConfig } from '../src/config/office';
 import { History, validateConfig, upgradeSavedLayout, removeRetiredFurniture } from '../src/config/storage';
@@ -78,10 +79,11 @@ test('walking accepts Babylon camera vectors without losing coordinate accessors
   assert.deepEqual(recovered,start,'An invalid previous camera position falls back to the door');
 });
 
-test('L desk leaves the chair bay open and its two runs rotate with matching collisions', () => {
+test('L desk leaves the chair bay open and its notched runs rotate with matching collisions', () => {
   const config = freshConfig(), desk = config.furniture.find(f=>f.id==='desk')!;
   const parts = obstacles(config).filter(o=>o.id==='desk');
-  assert.equal(parts.length,2); assert.equal(desk.dimensions.depth,1.9); assert.equal(desk.dimensions.width,2.4);
+  assert.equal(parts.length,3); assert.equal(desk.dimensions.depth,2.2); assert.equal(desk.dimensions.width,1.45);
+  assert.equal(desk.cornerDesk!.mainRun,'depth');
   assert.ok(canStand(-.6,.1,config.room,parts),'Inner L corner is open');
   assert.ok(!canStand(-1.5,0,config.room,parts),'West worktop collides');
   assert.ok(!canStand(-.6,-.9,config.room,parts),'South return collides');
@@ -133,7 +135,7 @@ test('four personal Samsung 27 inch panels retain three landscape orientations, 
   for(const m of monitors) {
     assert.equal(m.monitor!.brand,'Samsung'); assert.equal(m.monitor!.mount,'wall');
     const p=monitorPanel(m); assert.ok(Math.abs(Math.hypot(p.width,p.height)-27*.0254)<1e-8);
-    assert.equal(m.parentId,undefined); assert.ok(m.monitor!.wallMount);
+    assert.equal(m.parentId,undefined); assert.equal(m.monitor!.wallMount!.wall,'west');
   }
   const invalid=freshConfig(); invalid.furniture.find(f=>f.kind==='monitor')!.dimensions.width=.1;
   assert.throws(()=>validateConfig(invalid),/monitor envelope/);
@@ -153,7 +155,9 @@ test('LED strips stop at the doorway and wall finishes are independent and neutr
 });
 
 test('legacy saved layouts get the correction while retaining measurements; old file imports retain their arrangement', () => {
-  const legacy:any=freshConfig(); legacy.version=1;
+  // The pre-redesign desk cleared the step without a relief. A real old snapshot avoids
+  // manufacturing an invalid legacy import by stripping the new desk's required notch.
+  const legacy:any=JSON.parse(readFileSync(new URL('./fixtures/layout-v6.json', import.meta.url),'utf8')); legacy.version=1;
   delete legacy.room.wallFinishes; delete legacy.room.baseboardLED;
   legacy.room.height=2.8; legacy.room.heightConfirmed=true;
   legacy.room.openings[0].wall='north'; legacy.room.openings[0].offset=-.55;

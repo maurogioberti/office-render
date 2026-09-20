@@ -15,7 +15,7 @@ export type FurnitureConfig = {
   /** Preserve the attachment's offset from its parent desk top when desk height changes. */
   onDesktop?: boolean;
   /** L footprint occupies local -X and -Z sides. Outer runs use width/depth. */
-  cornerDesk?: { worktopDepth: number };
+  cornerDesk?: { worktopDepth: number; mainRun?: 'width' | 'depth'; cornerNotch?: { width: number; depth: number } };
   workZone?: { surfaceOffset: number; columnHeight: number; armReach: number };
   laptop?: { openingAngle: number };
   monitor?: { brand: string; diagonalInches: number; orientation: 'landscape' | 'portrait'; mount: 'arm' | 'stand' | 'wall' | 'shared-arm'; bezel: number;
