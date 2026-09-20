@@ -15,6 +15,8 @@ Open **http://127.0.0.1:5173/**. `npm run build` type-checks and builds the prod
 
 ## Controls
 
+The main view now includes the **compact L sofa and 50-inch TV**. Use **Lounge / Sofa + TV** in the left panel to show/hide them or extend the bed. The TV is parked below the window sill; its extended movement remains unverified. [Placement details and views](docs/main-lounge/README.md).
+
 The separate **[sofa-bed feasibility study](http://127.0.0.1:5173/sofa-study.html)** provides daily, seating and sleeping states, real product dimensions, two smaller alternatives, door-swing trials and dimensioned plans. It keeps the validated office fixed and does not overwrite saved layouts. See [findings and exported views](docs/lounge-study/README.md). Regenerate artifacts with `npm run study`.
 
 | Task | Control |

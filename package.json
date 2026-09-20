@@ -10,7 +10,8 @@
     "test": "tsx --test tests/*.test.ts",
     "audit": "tsx scripts/workstation-audit.ts",
     "views": "tsx scripts/render-workstation-views.ts",
-    "study": "tsx scripts/render-sofa-study.ts"
+    "study": "tsx scripts/render-sofa-study.ts",
+    "lounge:views": "tsx scripts/render-main-lounge.ts"
   },
   "dependencies": {
     "@babylonjs/core": "^8.0.0",

@@ -38,6 +38,12 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
     assert.equal(dom.document.querySelector('[data-group="dimensions"]')!.getAttribute('data-field'),'depth','Main run appears first in the inspector');
     assert.equal(dom.document.querySelector('.object-title h2')!.textContent,'Floating wraparound desk');
     assert.equal(dom.document.querySelectorAll('.object-row').length,11);
+    assert.equal(saved().lounge?.visible,true,'Existing saves receive the additive main-view lounge');
+    assert.ok((planner as any).scene.getMeshByName('Lounge TV 50-inch housing'));
+    const lockedLoungeSnapshot=structuredClone(saved().furniture);
+    button('[data-action="lounge-sleeping"]');assert.equal(saved().lounge?.state,'sleeping');
+    button('[data-action="lounge-daily"]');assert.equal(saved().lounge?.state,'daily');
+    assert.deepEqual(saved().furniture,lockedLoungeSnapshot);
     assert.equal(dom.document.querySelectorAll('i[data-lucide]').length,0,'Lucide placeholders should have been replaced');
     const poweredSnapshot=saved();
     button('[data-action="toggle-work-power"]');

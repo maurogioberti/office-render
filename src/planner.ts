@@ -15,6 +15,8 @@ import { worldTransform } from './navigation/collision';
 import { Navigation } from './navigation/cameras';
 import { createMeasurements } from './room/measurements';
 import { UI } from './ui/panel';
+import { freshLounge } from './config/lounge';
+import { createLounge } from './furniture/lounge';
 
 export class Planner {
   private config: PlannerConfig;
@@ -25,6 +27,7 @@ export class Planner {
   private room!: RoomGeometry;
   private architecture: Mesh[] = [];
   private furniture = new Map<string, FurnitureObject>();
+  private lounge?: ReturnType<typeof createLounge>;
   private measurement!: ReturnType<typeof createMeasurements>;
   private lights: ReturnType<typeof createLighting>;
   private baseboards!: ReturnType<typeof createBaseboardLighting>;
@@ -47,6 +50,8 @@ export class Planner {
 
   constructor(engineFactory?: (canvas: HTMLCanvasElement) => Engine) {
     const loaded = loadConfig(); this.config = loaded.config;
+    // Add the requested lounge to existing saves without migrating any office object.
+    if(!this.config.lounge){this.config.lounge=freshLounge();saveConfig(this.config);}
     this.ui = new UI({
       mode: mode => this.setMode(mode), select: id => this.select(id), action: action => this.action(action),
       toggleVisible: id => this.change(config => { const item = config.furniture.find(f=>f.id === id)!; item.visible = !item.visible; }),
@@ -101,6 +106,7 @@ export class Planner {
     this.measurement = createMeasurements(this.scene, this.config.room);
   }
   private buildFurniture() {
+    this.lounge?.dispose();this.lounge=createLounge(this.scene,this.config);
     this.gizmos.attachToMesh(null); this.selection?.dispose(); this.selection = null;
     disposeFurniture(this.furniture); this.furniture = createFurniture(this.scene, this.config.furniture, this.materials, this.config.room);
     for (const o of this.furniture.values()) {
@@ -108,7 +114,7 @@ export class Planner {
       o.root.setBoundingInfo(new BoundingInfo(new Vector3(-d.width/2,0,-d.depth/2),new Vector3(d.width/2,d.height,d.depth/2)));
     }
     this.lights.shadows.getShadowMap()!.renderList = [];
-    [...this.room.meshes, this.room.ceiling, ...this.architecture, ...[...this.furniture.values()].flatMap(o=>o.meshes)].forEach(mesh => this.lights.shadows.addShadowCaster(mesh));
+    [...this.room.meshes, this.room.ceiling, ...this.architecture, ...this.lounge.meshes, ...[...this.furniture.values()].flatMap(o=>o.meshes)].forEach(mesh => this.lights.shadows.addShadowCaster(mesh));
     this.navigation.setConfig(this.config); this.updateSelection();
   }
   private destroyRoom() {
@@ -216,6 +222,8 @@ export class Planner {
     if(this.navigation.mode !== 'edit') return;
     const selected = this.selectedId ? this.furniture.get(this.selectedId) : undefined;
     switch(action) {
+      case 'toggle-lounge': this.change(config=>{config.lounge??=freshLounge();config.lounge.visible=!config.lounge.visible;}); return;
+      case 'lounge-daily': case 'lounge-sleeping': this.change(config=>{config.lounge??=freshLounge();config.lounge.visible=true;config.lounge.state=action==='lounge-daily'?'daily':'sleeping';}); return;
       case 'toggle-work-zone': this.change(config=>{
         const group=config.furniture.find(f=>f.kind==='work-zone');
         if(group) removeFurnitureTree(config,group.id);

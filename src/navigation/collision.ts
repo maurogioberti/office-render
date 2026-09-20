@@ -2,6 +2,7 @@ import type { FurnitureConfig, PlannerConfig, RoomConfig, Vec3 } from '../config
 import { furnitureFootprints } from '../furniture/footprint';
 import { wallMountFootprints } from '../furniture/wallMounts';
 import { airConditionerObstacle } from '../architecture/airConditionerLayout';
+import { loungeObstacles } from '../furniture/loungeLayout';
 
 export type Obstacle = { x: number; z: number; bottom: number; top: number; width: number; depth: number; rotation: number; id: string; support?: boolean };
 
@@ -38,6 +39,7 @@ export function obstacles(config: PlannerConfig): Obstacle[] {
     const alongX = b.wall === 'north' || b.wall === 'south';
     result.push({ id: b.id, x: alongX ? b.offset : (b.wall === 'east' ? 1 : -1) * (room.length / 2 - b.projection / 2), z: alongX ? (b.wall === 'north' ? 1 : -1) * (room.width / 2 - b.projection / 2) : b.offset, bottom: room.height - b.drop, top: room.height, width: alongX ? b.length : b.projection, depth: alongX ? b.projection : b.length, rotation: 0 });
   }
+  result.push(...loungeObstacles(config));
   return result;
 }
 

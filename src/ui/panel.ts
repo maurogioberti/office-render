@@ -91,7 +91,7 @@ export class UI {
     document.querySelector<HTMLButtonElement>('#undo')!.disabled = !state.canUndo;
     document.querySelector<HTMLButtonElement>('#redo')!.disabled = !state.canRedo;
     document.querySelector('#mode-status')!.textContent = state.mode === 'edit' ? 'Edit mode' : 'Walk mode · Eye height 1.70 m';
-    document.querySelector('#object-status')!.textContent = `${state.config.furniture.length} furniture objects`;
+    document.querySelector('#object-status')!.textContent = `${state.config.furniture.length+(state.config.lounge?.visible?2:0)} furniture objects`;
     document.querySelector('#view-button')!.innerHTML = `${icon(state.top ? 'grid-2x2' : 'box')}<span>${state.top ? 'Top view' : 'Perspective'}</span>${icon('chevron-down')}`;
     document.querySelector('#canvas-help')!.innerHTML = state.mode === 'edit' ? `${icon('mouse-pointer-2')} Drag to orbit <span>·</span> Scroll to zoom <span>·</span> Click to select` : `<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move <span>·</span> Mouse to look <span>·</span> Esc to release`;
     this.scenePanel(); this.inspector(); renderIcons();
@@ -132,6 +132,12 @@ export class UI {
       ${section('SHARED FURNITURE',config.furniture.filter(f => !workIds.has(f.id) && f.kind !== 'monitor'))}
       ${section('ZONE A / PERSONAL SETUP',config.furniture.filter(f => !workIds.has(f.id) && f.kind === 'monitor'))}
       ${section('ZONE B / WORK SETUP',config.furniture.filter(f => workIds.has(f.id)))}
+      <div class="scene-section"><div class="section-label"><span class="eyebrow">LOUNGE / SOFA + TV</span><span class="count">2</span></div>
+        <button class="architecture-row" data-action="toggle-lounge" aria-pressed="${!!config.lounge?.visible}">${icon(config.lounge?.visible?'eye-off':'eye')}<span>${config.lounge?.visible?'Hide':'Show'} sofa + 50-inch TV</span></button>
+        <button class="architecture-row" data-action="lounge-daily" aria-pressed="${config.lounge?.state==='daily'}">${icon('armchair')}<span>Compact L · closed</span></button>
+        <button class="architecture-row" data-action="lounge-sleeping" aria-pressed="${config.lounge?.state==='sleeping'}">${icon('bed-double')}<span>Extend sleeper bed</span></button>
+        <p class="features-note">2.00 m sofa · TV parked below sill. Extended TV position not verified.</p>
+      </div>
       ${workLaptop ? `<button class="architecture-row" data-action="toggle-work-power" aria-pressed="${workPowered}">${icon('power')}<span>${workPowered ? 'Turn work setup off' : 'Turn work setup on'}</span></button><p class="features-note">Laptop + 2 work monitors. Personal PC stays on.</p>` : ''}
       ${workRoot ? `<button class="architecture-row" data-visibility="${esc(workRoot.id)}">${icon(workRoot.visible ? 'eye-off' : 'eye')}<span>${workRoot.visible ? 'Hide work monitor pair' : 'Show work monitor pair'}</span></button>` : ''}
       <button class="architecture-row" data-action="toggle-work-zone">${icon(workRoot ? 'minus' : 'plus')}<span>${workRoot ? 'Remove work monitor pair' : 'Add work monitor pair'}</span></button>

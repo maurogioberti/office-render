@@ -64,6 +64,6 @@ export type RoomConfig = {
   beams: { id: string; enabled: boolean; wall: Wall; offset: number; length: number; projection: number; drop: number }[];
   cornerFeatures: { id: string; enabled: boolean; corner: 'north-west' | 'north-east' | 'south-west' | 'south-east'; width: number; depth: number; height: number }[];
 };
-export type PlannerConfig = { version: 2; room: RoomConfig; furniture: FurnitureConfig[] };
+export type PlannerConfig = { version: 2; room: RoomConfig; furniture: FurnitureConfig[]; lounge?: import('./lounge').LoungeState };
 export type Mode = 'edit' | 'walk';
 export type TransformTool = 'move' | 'rotate';
