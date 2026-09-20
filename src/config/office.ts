@@ -6,21 +6,21 @@ const DEFAULT_DESK: FurnitureConfig = { id: 'desk', name: 'Floating wraparound d
  * Both displays share ONE desktop clamp/column. The laptop is an independent desk child.
  */
 const WORK_ZONE_CONFIG: FurnitureConfig[] = [
-  { id: 'work-zone', name: 'Work zone · dual monitor arm', kind: 'work-zone', parentId: 'desk', onDesktop: true, dimensions: { width: 1.18, height: .76, depth: .74 }, position: { x: .19, y: .72, z: .91 }, rotation: 0, color: '#383e3d', visible: true, workZone: { surfaceOffset: .04, columnHeight: .46, armReach: .65 } },
-  { id: 'work-monitor-left', name: 'Work · Samsung 27 · left', kind: 'monitor', parentId: 'work-zone', dimensions: { width: .611, height: .35, depth: .05 }, position: { x: -.1475, y: .40, z: -.2884 }, rotation: -35, color: '#343c3b', visible: true, monitor: { brand: 'Samsung', diagonalInches: 27, orientation: 'landscape', mount: 'shared-arm', sourceId: 'work-laptop', bezel: .006 } },
-  { id: 'work-monitor-right', name: 'Work · Samsung 27 · right', kind: 'monitor', parentId: 'work-zone', dimensions: { width: .611, height: .35, depth: .05 }, position: { x: .4465, y: .40, z: -.1012 }, rotation: 0, color: '#343c3b', visible: true, monitor: { brand: 'Samsung', diagonalInches: 27, orientation: 'landscape', mount: 'shared-arm', sourceId: 'work-laptop', bezel: .006 } },
+  { id: 'work-zone', name: 'Work zone · dual monitor arm', kind: 'work-zone', parentId: 'desk', onDesktop: true, dimensions: { width: 1.18, height: 0.76, depth: 0.74 }, position: { x: 0, y: 0.72, z: 0.91 }, rotation: 0, color: '#383e3d', visible: true, workZone: { surfaceOffset: .04, columnHeight: .46, armReach: .65 } },
+  { id: 'work-monitor-left', name: 'Work · Samsung 27 · left', kind: 'monitor', parentId: 'work-zone', dimensions: { width: 0.612, height: 0.36, depth: 0.052 }, position: { x: -0.3185, y: 0.395, z: 0.245 }, rotation: 0, color: '#343c3b', visible: true, monitor: { brand: 'Samsung', diagonalInches: 27, orientation: 'landscape', mount: 'shared-arm', sourceId: 'work-laptop', bezel: .006 } },
+  { id: 'work-monitor-right', name: 'Work · Samsung 27 · right', kind: 'monitor', parentId: 'work-zone', dimensions: { width: 0.612, height: 0.36, depth: 0.052 }, position: { x: 0.3185, y: 0.395, z: 0.245 }, rotation: 0, color: '#343c3b', visible: true, monitor: { brand: 'Samsung', diagonalInches: 27, orientation: 'landscape', mount: 'shared-arm', sourceId: 'work-laptop', bezel: .006 } },
 ];
 
 export function createWorkZone(desk: FurnitureConfig): FurnitureConfig[] {
   const items = structuredClone(WORK_ZONE_CONFIG);
   items[0].parentId = desk.id;
-  items[0].position = { x: desk.dimensions.width / 2 - .46, y: desk.dimensions.height - .04, z: desk.dimensions.depth / 2 - .34 };
+  items[0].position = { x: desk.dimensions.width / 2 - .65, y: desk.dimensions.height - .04, z: desk.dimensions.depth / 2 - .34 };
   return items;
 }
 
 /** Lower screen tucked into the existing inside corner, below the fourth/fifth-screen seam. */
 export function workLaptopPosition(desk: FurnitureConfig) {
-  return { x: -desk.dimensions.width / 2 + .475, y: desk.dimensions.height, z: desk.dimensions.depth / 2 - .81 };
+  return { x: -desk.dimensions.width / 2 + .46, y: desk.dimensions.height, z: desk.dimensions.depth / 2 - .355 };
 }
 
 /** Meters, degrees, and bottom-center origins. X = length, Z = width, Y = up.
@@ -58,16 +58,17 @@ export const OFFICE_CONFIG: PlannerConfig = {
   furniture: [
     DEFAULT_DESK,
     { id: 'chair', name: 'Ergonomic chair', kind: 'chair', dimensions: { width: .64, height: 1.15, depth: .64 }, position: { x: -.62, y: 0, z: -.1 }, rotation: -90, color: '#535c52', visible: true },
-    { id: 'pc', name: 'Desktop PC', kind: 'pc', parentId: 'desk', dimensions: { width: .22, height: .45, depth: .42 }, position: { x: -.37, y: 0, z: .66 }, rotation: -90, color: '#383e3d', visible: true },
+    { id: 'pc', name: 'Desktop PC', kind: 'pc', parentId: 'desk', dimensions: { width: 0.22, height: 0.45, depth: 0.42 }, position: { x: 0.29, y: 0, z: -0.93 }, rotation: 180, color: '#383e3d', visible: true },
     // Independent wall attachments. Positions are WORLD bottom-centers; dimensions enclose
     // the panel/case only. Arms reach from fixed wall anchors to each VESA plate.
     // In the comparison view: portrait at the AC end, then three landscape screens.
-    // Generic Samsung 27-inch 16:9 panels; no exact product/casing/arm model is asserted.
-    { id: 'monitor-left', name: 'Samsung 27 · left', kind: 'monitor', dimensions: { width: .611, height: .35, depth: .05 }, monitor: { brand: 'Samsung', diagonalInches: 27, orientation: 'landscape', mount: 'wall', sourceId: 'pc', bezel: .006, wallMount: { wall: 'south', offset: -1.1134, height: 1.295, maxReach: .65 } }, position: { x: -1.1134, y: 1.12, z: -1.0078 }, rotation: -145, color: '#343c3b', visible: true },
-    { id: 'monitor-center', name: 'Samsung 27 · center', kind: 'monitor', dimensions: { width: .611, height: .35, depth: .05 }, monitor: { brand: 'Samsung', diagonalInches: 27, orientation: 'landscape', mount: 'wall', sourceId: 'pc', bezel: .006, wallMount: { wall: 'west', offset: -0.5137, height: 1.295, maxReach: .65 } }, position: { x: -1.4926, y: 1.12, z: -0.5137 }, rotation: -110, color: '#343c3b', visible: true },
-    { id: 'monitor-right', name: 'Samsung 27 · right', kind: 'monitor', dimensions: { width: .611, height: .35, depth: .05 }, monitor: { brand: 'Samsung', diagonalInches: 27, orientation: 'landscape', mount: 'wall', sourceId: 'pc', bezel: .006, wallMount: { wall: 'west', offset: 0.1085, height: 1.295, maxReach: .65 } }, position: { x: -1.5198, y: 1.12, z: 0.1085 }, rotation: -75, color: '#343c3b', visible: true },
-    { id: 'monitor-portrait', name: 'Samsung 27 · portrait', kind: 'monitor', dimensions: { width: .35, height: .611, depth: .05 }, monitor: { brand: 'Samsung', diagonalInches: 27, orientation: 'portrait', mount: 'wall', sourceId: 'pc', bezel: .006, wallMount: { wall: 'south', offset: -0.65, height: 1.295, maxReach: .65 } }, position: { x: -0.65, y: .9895, z: -1.195 }, rotation: 180, color: '#343c3b', visible: true },
-    { id: 'work-laptop', name: 'Work zone · laptop', kind: 'laptop', parentId: 'desk', onDesktop: true, dimensions: { width: .36, height: .25, depth: .30 }, position: workLaptopPosition(DEFAULT_DESK), rotation: -60, color: '#697175', visible: true, laptop: { openingAngle: 105, poweredOn: true } },
+    // Samsung SR356 reference: 611.7 x 359.9 x 51.3 mm without stand.
+    // Conservative rounded housings: 612 x 360 x 52 mm; exact owned model unconfirmed.
+    { id: 'monitor-left', name: 'Samsung 27 · left', kind: 'monitor', dimensions: { width: 0.612, height: 0.36, depth: 0.052 }, monitor: { brand: 'Samsung', diagonalInches: 27, orientation: 'landscape', mount: 'wall', sourceId: 'pc', bezel: .006, wallMount: { wall: 'west', offset: -0.509778835, height: 1.295, maxReach: .65 } }, position: { x: -1.665134761, y: 1.115, z: -0.509778835 }, rotation: -100, color: '#343c3b', visible: true },
+    { id: 'monitor-center', name: 'Samsung 27 · center', kind: 'monitor', dimensions: { width: 0.612, height: 0.36, depth: 0.052 }, monitor: { brand: 'Samsung', diagonalInches: 27, orientation: 'landscape', mount: 'wall', sourceId: 'pc', bezel: .006, wallMount: { wall: 'west', offset: 0.122477205, height: 1.295, maxReach: .65 } }, position: { x: -1.720449997, y: 1.115, z: 0.122477205 }, rotation: -90, color: '#343c3b', visible: true },
+    { id: 'monitor-right', name: 'Samsung 27 · right', kind: 'monitor', dimensions: { width: 0.612, height: 0.36, depth: 0.052 }, monitor: { brand: 'Samsung', diagonalInches: 27, orientation: 'landscape', mount: 'wall', sourceId: 'pc', bezel: .006, wallMount: { wall: 'west', offset: 0.754733245, height: 1.295, maxReach: .65 } }, position: { x: -1.665134761, y: 1.115, z: 0.754733245 }, rotation: -80, color: '#343c3b', visible: true },
+    { id: 'monitor-portrait', name: 'Samsung 27 · portrait', kind: 'monitor', dimensions: { width: 0.36, height: 0.612, depth: 0.052 }, monitor: { brand: 'Samsung', diagonalInches: 27, orientation: 'portrait', mount: 'wall', sourceId: 'pc', bezel: .006, wallMount: { wall: 'west', offset: -1.009404056, height: 1.295, maxReach: .65 } }, position: { x: -1.56, y: 0.989, z: -1.009404056 }, rotation: -105, color: '#343c3b', visible: true },
+    { id: 'work-laptop', name: 'Work zone · laptop', kind: 'laptop', parentId: 'desk', onDesktop: true, dimensions: { width: 0.36, height: 0.25, depth: 0.3 }, position: workLaptopPosition(DEFAULT_DESK), rotation: -35, color: '#697175', visible: true, laptop: { openingAngle: 120, poweredOn: true } },
     ...createWorkZone(DEFAULT_DESK),
   ],
 };

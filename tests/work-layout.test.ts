@@ -21,7 +21,7 @@ test('workstation redesign preserves architecture and finishes while restoring b
   assert.deepEqual(before,snapshot,'Migration must not mutate the original backup');
   assert.deepEqual(after.room,before.room);
   assert.equal(after.furniture.find(f=>f.id==='monitor-right')!.color,'#3b403d');
-  assert.ok(after.furniture.filter(f=>f.monitor?.mount==='wall').filter(f=>f.monitor!.wallMount!.wall==='west').length===2);
+  assert.ok(after.furniture.filter(f=>f.monitor?.mount==='wall').filter(f=>f.monitor!.wallMount!.wall==='west').length===4);
   const desk=after.furniture.find(f=>f.id==='desk')!;
   assert.deepEqual(desk.dimensions,{width:1.3,height:.76,depth:2.5});
   assert.equal(desk.cornerDesk!.mainRun,'depth');
@@ -60,7 +60,7 @@ test('work-zone support and display separation reject floating clamps, excessive
   invalid(c=>{c.furniture.find(f=>f.id==='work-zone')!.position.z-=.10;},/clamp at a desk edge/);
   invalid(c=>{c.furniture.find(f=>f.id==='work-zone')!.workZone!.armReach=.2;},/shared arm reach/);
   invalid(c=>{c.furniture.find(f=>f.id==='work-monitor-right')!.position.x=.29;},/would intersect/);
-  invalid(c=>{c.furniture.find(f=>f.id==='work-laptop')!.position.x+=.2;},/laptop must fit/i);
+  invalid(c=>{const p=c.furniture.find(f=>f.id==='work-laptop')!.position;p.x+=.4;p.z-=.6;},/laptop must fit/i);
 });
 
 test('saved-layout upgrade falls back to the original scene if its corner feature needs a different cutout', () => {

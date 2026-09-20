@@ -146,7 +146,7 @@ export class UI {
       return;
     }
     const object = config.furniture.find(f => f.id === selectedId);
-    if (!object) { node.innerHTML = `<p class="eyebrow">SPACE OVERVIEW</p><div class="selected-object-icon">${icon('mouse-pointer-2')}</div><h2>Make room for focus.</h2><p class="muted">Select an object in the room or scene list to adjust its dimensions, position, and finish.</p><div class="inspector-tip">${icon('info')}<p>Six external screens form one continuous arc. The first four use the personal PC; the last two follow the work laptop power. The laptop sits below the transition.</p></div>`; return; }
+    if (!object) { node.innerHTML = `<p class="eyebrow">SPACE OVERVIEW</p><div class="selected-object-icon">${icon('mouse-pointer-2')}</div><h2>Make room for focus.</h2><p class="muted">Select an object in the room or scene list to adjust its dimensions, position, and finish.</p><div class="inspector-tip">${icon('info')}<p>Four full-size personal screens occupy the main span; two work screens stay on the right return. The laptop sits in the inside corner below them and controls the work pair power.</p></div>`; return; }
     const parent = config.furniture.find(f => f.id === object.parentId);
     const numberField = (group: string, field: string, label: string, value: number, min?: number, max?: number, unit = 'm') => `<label class="number-field"><span>${label}</span><div><input type="number" aria-label="${group} ${field}" data-group="${group}" data-field="${field}" value="${value.toFixed(2)}" step="${unit === '°' ? '1' : '0.01'}" ${min !== undefined ? `min="${min}"` : ''} ${max !== undefined ? `max="${max}"` : ''}><small>${unit}</small></div></label>`;
     const mainRun = object.cornerDesk?.mainRun ?? 'width';

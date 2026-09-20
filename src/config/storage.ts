@@ -8,8 +8,9 @@ import { monitorMountGeometry, wallMountFootprints } from '../furniture/wallMoun
 import { architectureConflict, itemFitsRoom, obstacles, rectanglesOverlap } from '../navigation/collision';
 import { airConditionerObstacle } from '../architecture/airConditionerLayout';
 
-// Revision 11 joins both display groups into a continuous arc with linked work power.
-export const STORAGE_KEY = 'roomwork.office.v11';
+// Revision 12 audits full-size housings on the locked desk and restores the split 4+2.
+export const STORAGE_KEY = 'roomwork.office.v12';
+export const AUDIT_PREVIOUS_STORAGE_KEY = 'roomwork.office.v11';
 export const PANORAMA_PREVIOUS_STORAGE_KEY = 'roomwork.office.v10';
 export const SPACING_PREVIOUS_STORAGE_KEY = 'roomwork.office.v9';
 export const MONITOR_PREVIOUS_STORAGE_KEY = 'roomwork.office.v8';
@@ -162,6 +163,16 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
       }
       return { config: validateConfig(input) };
     }
+    const previousAudit=localStorage.getItem(AUDIT_PREVIOUS_STORAGE_KEY);
+    if(previousAudit) {
+      const original=validateConfig(JSON.parse(previousAudit));
+      try {
+        const config=applyDimensionalAudit(original),persisted=saveConfig(config);
+        return {config,warning:persisted?'Full-size 4+2 workstation loaded; tower moved under the left return. Desk and room unchanged. Previous layout backed up.':'Dimensional correction loaded. Export to save; browser storage is unavailable.'};
+      } catch {
+        return {config:original,warning:'The dimensional correction cannot be applied safely to this customized layout. Existing objects were kept unchanged; no desk or screen was resized to force a fit.'};
+      }
+    }
     const previousMonitors=localStorage.getItem(PANORAMA_PREVIOUS_STORAGE_KEY) ?? localStorage.getItem(SPACING_PREVIOUS_STORAGE_KEY) ?? localStorage.getItem(MONITOR_PREVIOUS_STORAGE_KEY);
     if(previousMonitors) {
       const original=validateConfig(JSON.parse(previousMonitors));
@@ -210,6 +221,26 @@ export function loadConfig(): { config: PlannerConfig; warning?: string } {
     }
     return { config: freshConfig() };
   } catch { return { config: freshConfig(), warning: 'The saved layout could not be loaded. Starting with the original layout.' }; }
+}
+
+/** One-time audit correction. Custom desk geometry is never silently replaced or adapted. */
+export function applyDimensionalAudit(input: unknown): PlannerConfig {
+  const original=validateConfig(input),defaults=freshConfig();
+  const desk=original.furniture.find(f=>f.id==='desk')!,reference=defaults.furniture.find(f=>f.id==='desk')!;
+  for(const key of ['dimensions','position','rotation','cornerDesk'] as const) {
+    if(JSON.stringify(desk?.[key])!==JSON.stringify(reference[key])) fail('Audit requires the locked desk geometry and position.');
+  }
+  const config=alignWorkstations(original);
+  for(const item of config.furniture) {
+    const source=defaults.furniture.find(f=>f.id===item.id);
+    if(item.monitor && source?.monitor) item.dimensions={...source.dimensions};
+    if(item.id==='work-laptop') item.laptop!.openingAngle=120;
+    if(item.id==='pc') {
+      if(JSON.stringify(item.dimensions)!==JSON.stringify(source!.dimensions)) fail('Re-audit the changed tower dimensions before relocation.');
+      item.position={...source!.position};item.rotation=source!.rotation;
+    }
+  }
+  return validateConfig(config);
 }
 
 /** Reposition only displays, their arms and laptop. Never replace the saved desk or room. */

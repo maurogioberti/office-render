@@ -121,7 +121,7 @@ test('both zones are visible by default with six separate cases and a supported 
   assert.ok(Math.abs(laptopY - desktopY) < .00001, 'The laptop base rests on the desktop');
   assert.ok(cases.filter(item => item.id.startsWith('work-')).every(item => item.bottom > laptopY + laptop.dimensions.height), 'Both work monitors clear the open laptop');
   const unsupported = structuredClone(config);
-  unsupported.furniture.find(item => item.id === laptop.id)!.position.x += .2;
+  const p=unsupported.furniture.find(item => item.id === laptop.id)!.position; p.x+=.4; p.z-=.6;
   assert.throws(() => validateConfig(unsupported), /laptop must fit on the desktop/i);
 });
 

@@ -130,11 +130,12 @@ export function createFurniture(scene: Scene, configs: FurnitureConfig[], mats: 
           const wallMounted = config.monitor.mount === 'wall';
           const panelMounted = wallMounted || config.monitor.mount === 'shared-arm';
           const centerY = panelMounted ? h / 2 : h - panelH / 2, screenZ = panelMounted ? 0 : -d * .18;
-          b('display shell', panelW, panelH, .035, 0, centerY, screenZ);
+          // Mounted case geometry uses the full configured housing, never a smaller visual proxy.
+          b('display shell', panelMounted ? w : panelW, panelMounted ? h : panelH, panelMounted ? d - .002 : .035, 0, centerY, screenZ + (panelMounted ? .001 : 0));
           const powered = isDisplayPowered(config, configs);
           const display = solid(scene, `${config.id} screen`, powered ? '#54716f' : '#101716', .15);
           display.emissiveColor = powered ? Color3.FromHexString('#789a98').scale(.18) : Color3.Black(); object.materials.push(display);
-          b('27 inch active panel', panel.width, panel.height, .002, 0, centerY, screenZ - .018, display);
+          b('27 inch active panel', panel.width, panel.height, .002, 0, centerY, screenZ - (panelMounted ? d / 2 - .001 : .018), display);
           if (panelMounted) {
             if (wallMounted && room && config.monitor.wallMount) object.meshes.push(...createWallMonitorArm(scene, config, room, root, mats.dark));
             // Use a canvas label in the browser; NullEngine tests need no DOM or raster assets.
@@ -145,7 +146,7 @@ export function createFurniture(scene: Scene, configs: FurnitureConfig[], mats: 
               const ink = solid(scene, `${config.id} brand ink`, '#ffffff');
               ink.diffuseTexture = label; ink.opacityTexture = label;
               object.materials.push(ink);
-              b('brand label', Math.min(panelW * .13, .065), bezel * .6, .0005, 0, centerY - panelH / 2 + bezel / 2, -.018, ink);
+              b('brand label', Math.min(panelW * .13, .065), bezel * .6, .0005, 0, centerY - h / 2 + bezel / 2, -d / 2 + .00025, ink);
             }
           } else if (config.monitor.mount === 'arm') {
             b('arm clamp', .065, .025, .07, 0, .0125, d * .32, mats.dark);

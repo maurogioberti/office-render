@@ -30,11 +30,11 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
   const field=(selector:string,value:string)=>{
     const input=dom.document.querySelector(selector) as any; assert.ok(input,selector); input.value=value; input.dispatchEvent(new dom.Event('change',{bubbles:true}));
   };
-  const saved=()=>JSON.parse(dom.localStorage.getItem('roomwork.office.v11')!) as ReturnType<typeof freshConfig>;
+  const saved=()=>JSON.parse(dom.localStorage.getItem('roomwork.office.v12')!) as ReturnType<typeof freshConfig>;
   try {
     assert.equal(dom.localStorage.getItem('roomwork.office.v7'),legacyJSON,'Original browser save remains intact');
     assert.deepEqual(saved().room,legacy.room,'The approved room is preserved exactly');
-    assert.ok(saved().furniture.filter(f=>f.monitor?.mount==='wall').filter(f=>f.monitor!.wallMount!.wall==='west').length===2,'Personal monitors occupy the main working wall');
+    assert.ok(saved().furniture.filter(f=>f.monitor?.mount==='wall').filter(f=>f.monitor!.wallMount!.wall==='west').length===4,'Personal monitors occupy the main working wall');
     assert.equal(dom.document.querySelector('[data-group="dimensions"]')!.getAttribute('data-field'),'depth','Main run appears first in the inspector');
     assert.equal(dom.document.querySelector('.object-title h2')!.textContent,'Floating wraparound desk');
     assert.equal(dom.document.querySelectorAll('.object-row').length,11);
@@ -93,7 +93,7 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
     button('[data-mode="edit"]'); assert.ok(!dom.document.querySelector('#app')!.classList.contains('walking'));
     scene.render(); assert.equal((planner as any).room.ceiling.isEnabled(),false,'Edit cutaway must still hide the ceiling');
     button('[data-select="desk"]'); field('[data-group="dimensions"][data-field="height"]','0.80');
-    assert.equal(saved().furniture.find((f:any)=>f.id==='monitor-left').position.y,1.12,'Desk height must not move wall-mounted displays');
+    assert.equal(saved().furniture.find((f:any)=>f.id==='monitor-left').position.y,1.115,'Desk height must not move wall-mounted displays');
     assert.ok(Math.abs(saved().furniture.find(f=>f.id==='work-zone')!.position.y-.76)<1e-8,'Shared arm follows desktop height');
     assert.equal(saved().furniture.find(f=>f.id==='work-laptop')!.position.y,.80,'Independent laptop follows desk height');
     field('[data-group="cornerNotch"][data-field="width"]','0.10');
@@ -108,8 +108,8 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
     field('[data-group="wallMount"][data-field="maxReach"]','0.10');
     assert.equal(saved().furniture.find((f:any)=>f.id==='monitor-left').monitor.wallMount.maxReach,.65);
     assert.match(dom.document.querySelector('#toast')!.textContent!,/wall arm reach/);
-    field('[data-group="wallMount"][data-field="offset"]','-1.10');
-    assert.equal(saved().furniture.find((f:any)=>f.id==='monitor-left').monitor.wallMount.offset,-1.10);
+    field('[data-group="wallMount"][data-field="offset"]','-0.52');
+    assert.equal(saved().furniture.find((f:any)=>f.id==='monitor-left').monitor.wallMount.offset,-.52);
     button('[data-action="settings"]');
     const form=dom.document.querySelector('#room-form')!;
     (form.querySelector('[name="height"]') as any).value='2.70';
@@ -146,7 +146,7 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
     field('[data-group="workZone"][data-field="armReach"]','0.70');
     assert.equal(saved().furniture.find(f=>f.id==='work-zone')!.workZone!.armReach,.7);
     button('[data-action="chair-work"]');
-    assert.ok(Math.abs(saved().furniture.find(f=>f.id==='chair')!.position.x+1.11)<1e-8);
+    assert.ok(Math.abs(saved().furniture.find(f=>f.id==='chair')!.position.x+1.30)<1e-8);
     button('[data-action="chair-personal"]');
     assert.deepEqual(saved().furniture.find(f=>f.id==='chair')!.position,{x:-.62,y:0,z:-.1});
     button('[data-select="work-laptop"]');
@@ -171,7 +171,7 @@ test('planner integration: startup, numeric edits, undo, mode switch, room rebui
     renamed.furniture.filter(f=>f.parentId==='work-zone').forEach(f=>{f.parentId='company-zone';});
     (planner as any).ui.actions.import(JSON.stringify(renamed));
     button('[data-select="company-zone"]'); button('[data-action="chair-work"]');
-    assert.ok(Math.abs(saved().furniture.find(f=>f.id==='chair')!.position.x+1.11)<1e-8,'Chair action supports configured group identifiers');
+    assert.ok(Math.abs(saved().furniture.find(f=>f.id==='chair')!.position.x+1.30)<1e-8,'Chair action supports configured group identifiers');
     button('[data-action="toggle-work-zone"]');
     assert.equal(saved().furniture.length,8,'Removal targets the displayed group even with a customized identifier');
     button('[data-visibility="desk"]'); assert.equal(saved().furniture.find((f:any)=>f.id==='desk').visible,false);

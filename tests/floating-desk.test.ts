@@ -72,11 +72,17 @@ test('v7 browser correction restores removed work screens and laptop without cha
 });
 
 
-test('monitor correction preserves the approved desk, room, chair and PC exactly', () => {
+test('monitor correction preserves the approved desk, room and chair exactly; tower dimensions stay unchanged', () => {
   const previous = JSON.parse(readFileSync(new URL('./fixtures/layout-v8.json', import.meta.url), 'utf8'));
   const current = freshConfig();
   assert.deepEqual(current.room, previous.room);
-  for (const id of ['desk','chair','pc']) {
+  for (const id of ['desk','chair']) {
     assert.deepEqual(current.furniture.find(f=>f.id===id),previous.furniture.find((f: {id: string})=>f.id===id));
   }
+});
+
+test('relocating the PC retains its original case dimensions and finish', () => {
+  const before=JSON.parse(readFileSync(new URL('./fixtures/layout-v8.json', import.meta.url),'utf8')).furniture.find((f:any)=>f.id==='pc');
+  const after=freshConfig().furniture.find(f=>f.id==='pc')!;
+  assert.deepEqual(after.dimensions,before.dimensions);assert.equal(after.color,before.color);
 });

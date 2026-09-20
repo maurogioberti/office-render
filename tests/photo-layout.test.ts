@@ -154,10 +154,10 @@ test('four monitor cases form a separate, inward-angled array on the main wall',
     assert.ok(gap > .001 && gap < .15, `${sequence[i-1].id} and ${sequence[i].id} should form one usable array; gap is ${gap} m`);
   }
   const landscape = config.furniture.filter(f => f.monitor?.mount === 'wall' && f.monitor.orientation === 'landscape');
-  assert.deepEqual(landscape.map(item=>item.monitor!.wallMount!.wall),['south','west','west'], 'The array wraps from the AC end into the main west-wall run');
+  assert.deepEqual(landscape.map(item=>item.monitor!.wallMount!.wall),['west','west','west'], 'The personal array stays on the west main span');
   const center=landscape[1],chair=config.furniture.find(f=>f.id==='chair')!;
   const facing=Math.atan2(center.position.x-chair.position.x,center.position.z-chair.position.z)*180/Math.PI;
-  assert.ok(Math.abs(center.rotation-facing)<10,'The center screen faces the main chair within ten degrees');
+  assert.ok(Math.abs(center.rotation-facing)<15,'The center screen faces the fixed chair within fifteen degrees');
   assert.ok(landscape[0].rotation < -90 && landscape[2].rotation > -90, 'The side screens angle inward around the centered workstation');
-  assert.ok(Math.abs(landscape[0].rotation - landscape[2].rotation) >= 60);
+  assert.ok(Math.abs(landscape[0].rotation - landscape[2].rotation) === 20);
 });

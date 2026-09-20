@@ -8,7 +8,7 @@ import { validateConfig } from '../src/config/storage';
 
 const ids=['monitor-portrait','monitor-left','monitor-center','monitor-right','work-monitor-left','work-monitor-right'];
 
-test('six displays follow one arc with equal small gaps, aligned centers and the existing four-plus-two sources', () => {
+test('full-size displays retain aligned centers and separate four-plus-two sources with 25 mm within-group gaps', () => {
   const config=validateConfig(freshConfig());
   const screens=ids.map(id=>config.furniture.find(f=>f.id===id)!);
   const edge=(index:number,side:number)=>{
@@ -20,15 +20,15 @@ test('six displays follow one arc with equal small gaps, aligned centers and the
     const screen=screens[i],t=worldTransform(screen,config.furniture);
     assert.ok(Math.abs(t.position.y+screen.dimensions.height/2-1.295)<.0001,'Screen centers align, including the portrait');
     assert.equal(screen.monitor!.sourceId,i<4?'pc':'work-laptop');
-    if(i===0) continue;
+    if(i===0 || i===4) continue;
     const a=edge(i-1,1),b=edge(i,-1);
-    assert.ok(Math.abs(Math.hypot(a.x-b.x,a.z-b.z)-.04)<.001,`Gap ${i}/${i+1} stays at 4 cm, including the PC/work transition`);
+    assert.ok(Math.abs(Math.hypot(a.x-b.x,a.z-b.z)-.025)<.001,`Gap ${i}/${i+1} stays at 2.5 cm within its workstation`);
   }
   for(let i=0;i<bodies.length;i++) for(let j=i+1;j<bodies.length;j++) assert.equal(rectanglesOverlap(bodies[i],bodies[j]),false,'No case overlap');
   const laptop=config.furniture.find(f=>f.id==='work-laptop')!,chair=config.furniture.find(f=>f.id==='chair')!;
   const p=worldTransform(laptop,config.furniture),joinA=edge(3,1),joinB=edge(4,-1);
   const join={x:(joinA.x+joinB.x)/2,z:(joinA.z+joinB.z)/2};
-  assert.ok(Math.hypot(p.position.x-join.x,p.position.z-join.z)<.2,'Laptop stays immediately below the transition');
+  assert.ok(Math.hypot(p.position.x-join.x,p.position.z-join.z)<.45,'Laptop stays in the inside corner below the transition');
   assert.ok((p.position.x-join.x)*(chair.position.x-join.x)+(p.position.z-join.z)*(chair.position.z-join.z)>0,'Laptop sits forward of the upper row');
   const chairYaw=Math.atan2(p.position.x-chair.position.x,p.position.z-chair.position.z)*180/Math.PI;
   assert.ok(Math.abs(p.rotation-chairYaw)<10,'Keyboard and webcam face the fixed chair');
